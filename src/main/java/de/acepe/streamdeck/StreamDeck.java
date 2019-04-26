@@ -2,10 +2,9 @@ package de.acepe.streamdeck;
 
 import de.acepe.streamdeck.event.KeyEvent;
 import de.acepe.streamdeck.event.KeyListener;
+import org.hid4java.HidDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import purejavahidapi.HidDevice;
-import purejavahidapi.InputReportListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,27 +14,63 @@ import java.util.concurrent.Executors;
 
 import static de.acepe.streamdeck.event.KeyEvent.Type;
 
-public class StreamDeck implements InputReportListener {
+public class StreamDeck implements IStreamDeck {
     private static final Logger LOG = LoggerFactory.getLogger(StreamDeck.class);
+
+    public static final int KEY_COUNT = 15;
+    public static final int KEY_COLS = 5;
+    public static final int KEY_ROWS = 3;
+
+    public static final int KEY_PIXEL_WIDTH = 72;
+    public static final int KEY_PIXEL_HEIGHT = 72;
+    public static final int KEY_PIXEL_DEPTH = 3;
 
     private static final byte DEFAULT_BRIGHTNESS = 99;
 
     /**
      * Reset command
      */
-    private final static byte[] RESET_DATA = new byte[]{0x0B, 0x63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private static final byte[] RESET_DATA = new byte[]{0x0B, 0x63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     /**
      * Brightness command
      */
-    private final static byte[] BRIGHTNES_DATA = new byte[]{0x05, 0x55, (byte) 0xAA, (byte) 0xD1, 0x01, 0x63, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    private static final byte[] BRIGHTNES_DATA = new byte[]{0x55, (byte) 0xaa, (byte) 0xd1, 0x01, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
     private static final int KEY_DOWN_VALUE = 0x01;
+
+    private static final int KEY_IMAGE_SIZE = KEY_PIXEL_WIDTH * KEY_PIXEL_HEIGHT * KEY_PIXEL_DEPTH;
+
+    private static final int pagePacketSize = 8191;
+    private static final int numFirstPagePixels = 2583;
+    private static final int numSecondPagePixels = 2601;
+    /**
+     * Header for Page 1 of the image command
+     */
+    private static final byte[] PAGE_1_HEADER2 = new byte[]{
+            0x02, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x42, 0x4d, (byte) 0xf6, 0x3c, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x36, 0x00, 0x00, 0x00, 0x28, 0x00,
+            0x00, 0x00, 0x48, 0x00, 0x00, 0x00, 0x48, 0x00,
+            0x00, 0x00, 0x01, 0x00, 0x18, 0x00, 0x00, 0x00,
+            0x00, 0x00, (byte) 0xc0, 0x3c, 0x00, 0x00, (byte) 0xc4, 0x0e,
+            0x00, 0x00, (byte) 0xc4, 0x0e, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+    /**
+     * Header for Page 2 of the image command
+     */
+    private static final byte[] PAGE_2_HEADER2 = new byte[]{
+            0x02, 0x01, 0x02, 0x00, 0x01, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+    private final Object disposeLock = new Object();
 
     /**
      * Brightness command for this instance.
      */
-    private final byte[] brightness = Arrays.copyOf(BRIGHTNES_DATA, BRIGHTNES_DATA.length);
+    private final byte[] currentBrightness = Arrays.copyOf(BRIGHTNES_DATA, BRIGHTNES_DATA.length);
 
     /**
      * current values if a key on a certain index is pressed or not
@@ -43,36 +78,37 @@ public class StreamDeck implements InputReportListener {
     private final boolean[] keysPressed = new boolean[15];
 
     /**
+     * Pixels(times 3 to get the amount of bytes) of an icon that can be sent with page 1 of the image command
+     */
+    public final static int NUM_FIRST_PAGE_PIXELS = 2583;
+
+    /**
+     * Pixels(times 3 to get the amount of bytes) of an icon that can be sent with page 2 of the image command
+     */
+    public final static int NUM_SECOND_PAGE_PIXELS = 2601;
+
+    /**
      * Registered Listeners to the {@link KeyEvent}s created by the ESD
      */
     private final List<KeyListener> keyListeners = new ArrayList<>(0);
 
-    private final HidDevice hidDevice;
+    private HidDevice hidDevice;
     private final ExecutorService commandDispatcher;
     private final ExecutorService eventDispatcher;
 
+    private boolean isListening;
+    private Thread keyListenTask;
+    private boolean disposed;
+
     public StreamDeck(HidDevice hidDevice) {
         this.hidDevice = hidDevice;
-        this.brightness[5] = DEFAULT_BRIGHTNESS;
+        this.currentBrightness[4] = DEFAULT_BRIGHTNESS;
 
         commandDispatcher = Executors.newFixedThreadPool(1, r -> new Thread(r, "ESD-Command-Dispatch-Thread"));
         eventDispatcher = Executors.newFixedThreadPool(1, r -> new Thread(r, "ESD-Event-Dispatch-Thread"));
 
-        hidDevice.setInputReportListener(this);
-    }
-
-    @Override
-    public void onInputReport(HidDevice source, byte reportID, byte[] reportData, int reportLength) {
-        if (reportID != 1) {
-            return;
-        }
-
-        for (int i = 0; i < 15 && i < reportLength; i++) {
-            boolean keyPressed = reportData[i] == KEY_DOWN_VALUE;
-            if (keysPressed[i] != keyPressed) {
-                fireKeyChangedEvent(i, keyPressed);
-                keysPressed[i] = keyPressed;
-            }
+        if (!hidDevice.isOpen()) {
+            hidDevice.open();
         }
     }
 
@@ -90,18 +126,66 @@ public class StreamDeck implements InputReportListener {
      */
     public void reset() {
         commandDispatcher.submit(this::_reset);
-        //TODO: update Icons
     }
 
     /**
-     * Sets the desired brightness from 0 - 100 % and queues the change.
+     * Returns the number of keys. There is only one Stream Deck released currently, but implemented in case future Stream Decks are released.
      *
-     * @param brightness
+     * @return the number of keys
      */
+    @Override
+    public int getNumberOfKeys() {
+        return KEY_COUNT;
+    }
+
+    /**
+     * Sets the desired brightness from 0 - 99 and queues the change.
+     *
+     * @param brightness between 0 - 99
+     */
+    @Override
     public void setBrightness(int brightness) {
         brightness = brightness > 99 ? 99 : brightness < 0 ? 0 : brightness;
-        this.brightness[5] = (byte) brightness;
+        this.currentBrightness[4] = (byte) brightness;
         commandDispatcher.submit(this::_updateBrightnes);
+    }
+
+    /**
+     * Closes device and instructs it to go back to the logo. Not strictly necessary, but nice to have!
+     */
+    @Override
+    public void dispose() {
+        synchronized (disposeLock) {
+            if (disposed) {
+                return;
+            }
+            disposed = true;
+        }
+
+        if (hidDevice == null) {
+            return;
+        }
+        reset();
+
+        hidDevice.close();
+        hidDevice = null;
+    }
+
+    /**
+     * Creates a Job to send the give icon to the ESD to be displayed on the given keyIndex
+     *
+     * @param keyIndex Index of ESD (0..14)
+     * @param imgData  Image in BGR format to be displayed
+     */
+    @Override
+    public void setKeyBitmap(int keyIndex, byte[] imgData) {
+        eventDispatcher.submit(() -> {
+            try {
+                _drawImage(keyIndex, imgData);
+            } catch (Exception e) {
+                LOG.error("Exception in {}", Thread.currentThread().getName(), e);
+            }
+        });
     }
 
     /**
@@ -113,7 +197,37 @@ public class StreamDeck implements InputReportListener {
         if (listener == null) {
             return;
         }
-        keyListeners.add(listener);
+        synchronized (keyListeners) {
+            keyListeners.add(listener);
+            if (keyListenTask == null) {
+                isListening = true;
+                keyListenTask = new Thread(this::keyListener);
+                keyListenTask.setName("ESD-Key-Listener-Thread");
+                keyListenTask.setDaemon(true);
+                keyListenTask.start();
+            }
+        }
+    }
+
+    private void keyListener() {
+        synchronized (keyListeners) {
+            while (isListening) {
+                byte[] data = new byte[16];
+                hidDevice.read(data, 1000);
+
+//                LOG.debug("date: " + Arrays.toString(data));
+
+                if (data[0] != 0) {
+                    for (int i = 0; i < 15; i++) {
+                        boolean keyPressed = data[i + 1] == KEY_DOWN_VALUE;
+                        if (keysPressed[i] != keyPressed) {
+                            fireKeyChangedEvent(i, keyPressed);
+                            keysPressed[i] = keyPressed;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -125,20 +239,70 @@ public class StreamDeck implements InputReportListener {
         if (listener == null) {
             return;
         }
-        keyListeners.remove(listener);
+        synchronized (keyListeners) {
+            keyListeners.remove(listener);
+            if (keyListeners.isEmpty() && keyListenTask != null) {
+                isListening = false;
+                keyListenTask.setDaemon(false);
+                keyListenTask = null;
+            }
+        }
     }
 
     /**
      * Sends reset-command to ESD
      */
     private void _reset() {
-        hidDevice.setFeatureReport(RESET_DATA, RESET_DATA.length);
+        LOG.debug("Resetting");
+        hidDevice.sendFeatureReport(RESET_DATA, (byte) RESET_DATA.length);
+        hidDevice.sendFeatureReport(new byte[]{0x63}, (byte) 0x0B);
     }
 
     /**
      * Sends brightness-command to ESD
      */
     private void _updateBrightnes() {
-        hidDevice.setFeatureReport(this.brightness, this.brightness.length);
+        LOG.debug("Updating brightness");
+        hidDevice.sendFeatureReport(currentBrightness, (byte) 0x05);
     }
+
+    private void _drawImage(int keyIndex, byte[] imgData) {
+        LOG.debug("Drawing image for index: " + keyIndex);
+
+        byte[] page1 = generatePage1(keyIndex, imgData);
+        byte[] page2 = generatePage2(keyIndex, imgData);
+        byte repID1 = page1[0];
+        byte repID2 = page2[0];
+
+        page1 = Arrays.copyOfRange(page1, 1, page1.length);
+        page2 = Arrays.copyOfRange(page2, 1, page2.length);
+
+        hidDevice.write(page1, page1.length, repID1);
+        hidDevice.write(page2, page2.length, repID2);
+    }
+
+    private static byte[] generatePage1(int keyId, byte[] imgData) {
+        byte[] p1 = new byte[pagePacketSize];
+        System.arraycopy(PAGE_1_HEADER2, 0, p1, 0, PAGE_1_HEADER2.length);
+
+        if (imgData != null) {
+            System.arraycopy(imgData, 0, p1, PAGE_1_HEADER2.length, numFirstPagePixels * 3);
+        }
+
+        p1[5] = (byte) (keyId + 1);
+        return p1;
+    }
+
+    private static byte[] generatePage2(int keyId, byte[] imgData) {
+        byte[] p2 = new byte[pagePacketSize];
+        System.arraycopy(PAGE_2_HEADER2, 0, p2, 0, PAGE_2_HEADER2.length);
+
+        if (imgData != null) {
+            System.arraycopy(imgData, numFirstPagePixels * 3, p2, PAGE_2_HEADER2.length, numSecondPagePixels * 3);
+        }
+
+        p2[5] = (byte) (keyId + 1);
+        return p2;
+    }
+
 }

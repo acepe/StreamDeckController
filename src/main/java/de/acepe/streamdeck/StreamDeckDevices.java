@@ -1,16 +1,13 @@
 package de.acepe.streamdeck;
 
+import org.hid4java.HidDevice;
+import org.hid4java.HidManager;
+import org.hid4java.HidServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import purejavahidapi.HidDevice;
-import purejavahidapi.HidDeviceInfo;
-import purejavahidapi.PureJavaHidApi;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * <br><br>
@@ -44,10 +41,11 @@ public final class StreamDeckDevices {
 
     private static final Logger LOG = LoggerFactory.getLogger(StreamDeckDevices.class);
 
-    public static final int VENDOR_ID = 0x0fd9;
-    public static final int PRODUCT_ID = 0x0060;
+    private static final Integer VENDOR_ID = 0x0FD9;
+    private static final Integer PRODUCT_ID = 0x0060;
+    public static final String SERIAL_NUMBER = null;
 
-    private final List<StreamDeck> streamDecks = new ArrayList<>(0);
+    private final List<IStreamDeck> streamDecks = new ArrayList<>(0);
 
     private static StreamDeckDevices instance;
 
@@ -64,51 +62,49 @@ public final class StreamDeckDevices {
 
     private void initDecks() {
         streamDecks.clear();
-        streamDecks.addAll(openStreamDeckDevices().stream().map(StreamDeck::new).collect(toList()));
+        streamDecks.addAll(getAllStreamDecks());
     }
 
-    private List<HidDevice> openStreamDeckDevices() {
-        List<HidDeviceInfo> foundStreamDeckDevices = findStreamDeckDevices();
+//    /**
+//     * Returns the first Stream Deck found. Will be ready to use as will already have been prepared!
+//     *
+//     * @return
+//     */
+//    public static IStreamDeck getFirstStreamDeck() {
+//        HidServices hidServices = HidManager.getHidServices();
+//        hidServices.start();
+//
+//        HidDevice hidDevice = hidServices.getHidDevice(VENDOR_ID, PRODUCT_ID, SERIAL_NUMBER);
+//        return hidDevice == null ? null : new StreamDeck(hidDevice);
+//    }
 
-        try {
-            LOG.info("Connected Stream Decks:");
-            List<HidDevice> openedDecks = new ArrayList<>(foundStreamDeckDevices.size());
-            for (HidDeviceInfo hidDeviceinfo : foundStreamDeckDevices) {
-                LOG.info("  Manufacurer: " + hidDeviceinfo.getManufacturerString());
-                LOG.info("  Product:     " + hidDeviceinfo.getProductString());
-                LOG.info("  Device-Id:   " + hidDeviceinfo.getDeviceId());
-                LOG.info("  Serial-No:   " + hidDeviceinfo.getSerialNumberString());
-                LOG.info("  Path:        " + hidDeviceinfo.getPath());
-                LOG.info("");
-                openedDecks.add(PureJavaHidApi.openDevice(hidDeviceinfo));
-            }
-            return openedDecks;
-        } catch (IOException e) {
-            LOG.error("Could not enumerate USB-devices", e);
-            return new ArrayList<>(0);
-        }
-    }
-
-    private List<HidDeviceInfo> findStreamDeckDevices() {
+    private ArrayList<IStreamDeck> getAllStreamDecks() {
         LOG.info("Scanning for devices");
-        List<HidDeviceInfo> foundStreamDeckDevices = new ArrayList<>(0);
 
-        List<HidDeviceInfo> devList = PureJavaHidApi.enumerateDevices();
-        for (HidDeviceInfo info : devList) {
-            LOG.debug("Vendor-ID: " + info.getVendorId() + ", Product-ID: " + info.getProductId());
-            if (info.getVendorId() == VENDOR_ID && info.getProductId() == PRODUCT_ID) {
-                LOG.info("Found ESD [" + info.getVendorId() + ":" + info.getProductId() + "]");
-                foundStreamDeckDevices.add(info);
+        HidServices hidServices = HidManager.getHidServices();
+        hidServices.start();
+
+        ArrayList<IStreamDeck> ret = new ArrayList<>();
+        for (HidDevice device : hidServices.getAttachedHidDevices()) {
+            LOG.debug("Vendor-ID: " + device.getVendorId() + ", Product-ID: " + device.getProductId());
+            if (device.getVendorId() == VENDOR_ID && device.getProductId() == PRODUCT_ID) {
+                LOG.info("  Manufacurer: " + device.getManufacturer());
+                LOG.info("  Product:     " + device.getProduct());
+                LOG.info("  Device-Id:   " + device.getId());
+                LOG.info("  Serial-No:   " + device.getSerialNumber());
+                LOG.info("  Path:        " + device.getPath());
+                LOG.info("");
+                ret.add(new StreamDeck(device));
             }
         }
-        return foundStreamDeckDevices;
+        return ret;
     }
 
-    public StreamDeck getStreamDeck() {
+    public IStreamDeck getStreamDeck() {
         return getStreamDeck(0);
     }
 
-    public StreamDeck getStreamDeck(int id) {
+    public IStreamDeck getStreamDeck(int id) {
         if (id < 0 || id >= getStreamDeckSize()) {
             return null;
         }

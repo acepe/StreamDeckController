@@ -35,7 +35,6 @@ import java.util.EventObject;
  * @version 0.1
  */
 public class KeyEvent extends EventObject {
-    private static final long serialVersionUID = 82319643971116964L;
 
     /**
      * Id of the key
