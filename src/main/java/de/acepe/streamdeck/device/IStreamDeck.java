@@ -1,6 +1,6 @@
-package de.acepe.streamdeck;
+package de.acepe.streamdeck.device;
 
-import de.acepe.streamdeck.event.KeyListener;
+import de.acepe.streamdeck.device.event.KeyListener;
 
 /**
  * An interface to a stream deck.

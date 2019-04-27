@@ -1,7 +1,7 @@
-package de.acepe.streamdeck;
+package de.acepe.streamdeck.device;
 
-import de.acepe.streamdeck.event.KeyEvent;
-import de.acepe.streamdeck.event.KeyListener;
+import de.acepe.streamdeck.device.event.KeyEvent;
+import de.acepe.streamdeck.device.event.KeyListener;
 import org.hid4java.HidDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,38 +12,24 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static de.acepe.streamdeck.event.KeyEvent.Type;
+import static de.acepe.streamdeck.device.event.KeyEvent.Type;
 
 public class StreamDeck implements IStreamDeck {
     private static final Logger LOG = LoggerFactory.getLogger(StreamDeck.class);
 
     public static final int KEY_COUNT = 15;
-    public static final int KEY_COLS = 5;
-    public static final int KEY_ROWS = 3;
-
     public static final int KEY_PIXEL_WIDTH = 72;
     public static final int KEY_PIXEL_HEIGHT = 72;
     public static final int KEY_PIXEL_DEPTH = 3;
 
     private static final byte DEFAULT_BRIGHTNESS = 99;
 
-    /**
-     * Reset command
-     */
     private static final byte[] RESET_DATA = new byte[]{0x0B, 0x63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-    /**
-     * Brightness command
-     */
     private static final byte[] BRIGHTNES_DATA = new byte[]{0x55, (byte) 0xaa, (byte) 0xd1, 0x01, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     private static final int KEY_DOWN_VALUE = 0x01;
 
-    private static final int KEY_IMAGE_SIZE = KEY_PIXEL_WIDTH * KEY_PIXEL_HEIGHT * KEY_PIXEL_DEPTH;
-
-    private static final int pagePacketSize = 8191;
-    private static final int numFirstPagePixels = 2583;
-    private static final int numSecondPagePixels = 2601;
+    private static final int PAGE_PACKET_SIZE = 8191;
     /**
      * Header for Page 1 of the image command
      */
@@ -91,11 +77,10 @@ public class StreamDeck implements IStreamDeck {
      * Registered Listeners to the {@link KeyEvent}s created by the ESD
      */
     private final List<KeyListener> keyListeners = new ArrayList<>(0);
-
-    private HidDevice hidDevice;
     private final ExecutorService commandDispatcher;
     private final ExecutorService eventDispatcher;
 
+    private HidDevice hidDevice;
     private boolean isListening;
     private Thread keyListenTask;
     private boolean disposed;
@@ -215,8 +200,6 @@ public class StreamDeck implements IStreamDeck {
                 byte[] data = new byte[16];
                 hidDevice.read(data, 1000);
 
-//                LOG.debug("date: " + Arrays.toString(data));
-
                 if (data[0] != 0) {
                     for (int i = 0; i < 15; i++) {
                         boolean keyPressed = data[i + 1] == KEY_DOWN_VALUE;
@@ -282,11 +265,11 @@ public class StreamDeck implements IStreamDeck {
     }
 
     private static byte[] generatePage1(int keyId, byte[] imgData) {
-        byte[] p1 = new byte[pagePacketSize];
+        byte[] p1 = new byte[PAGE_PACKET_SIZE];
         System.arraycopy(PAGE_1_HEADER2, 0, p1, 0, PAGE_1_HEADER2.length);
 
         if (imgData != null) {
-            System.arraycopy(imgData, 0, p1, PAGE_1_HEADER2.length, numFirstPagePixels * 3);
+            System.arraycopy(imgData, 0, p1, PAGE_1_HEADER2.length, NUM_FIRST_PAGE_PIXELS * KEY_PIXEL_DEPTH);
         }
 
         p1[5] = (byte) (keyId + 1);
@@ -294,11 +277,11 @@ public class StreamDeck implements IStreamDeck {
     }
 
     private static byte[] generatePage2(int keyId, byte[] imgData) {
-        byte[] p2 = new byte[pagePacketSize];
+        byte[] p2 = new byte[PAGE_PACKET_SIZE];
         System.arraycopy(PAGE_2_HEADER2, 0, p2, 0, PAGE_2_HEADER2.length);
 
         if (imgData != null) {
-            System.arraycopy(imgData, numFirstPagePixels * 3, p2, PAGE_2_HEADER2.length, numSecondPagePixels * 3);
+            System.arraycopy(imgData, NUM_FIRST_PAGE_PIXELS * KEY_PIXEL_DEPTH, p2, PAGE_2_HEADER2.length, NUM_SECOND_PAGE_PIXELS * KEY_PIXEL_DEPTH);
         }
 
         p2[5] = (byte) (keyId + 1);

@@ -1,6 +1,6 @@
-package de.acepe.streamdeck.event;
+package de.acepe.streamdeck.device.event;
 
-import de.acepe.streamdeck.StreamDeck;
+import de.acepe.streamdeck.device.StreamDeck;
 
 import java.util.EventObject;
 

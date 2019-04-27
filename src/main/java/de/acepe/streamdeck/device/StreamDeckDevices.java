@@ -1,4 +1,4 @@
-package de.acepe.streamdeck;
+package de.acepe.streamdeck.device;
 
 import org.hid4java.HidDevice;
 import org.hid4java.HidManager;

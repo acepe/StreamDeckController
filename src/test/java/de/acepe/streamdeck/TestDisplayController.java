@@ -1,6 +1,8 @@
 package de.acepe.streamdeck;
 
-import de.acepe.streamdeck.event.KeyEvent;
+import de.acepe.streamdeck.device.IStreamDeck;
+import de.acepe.streamdeck.device.StreamDeckDevices;
+import de.acepe.streamdeck.device.event.KeyEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +15,7 @@ import java.util.Random;
 import static de.acepe.streamdeck.util.IconHelper.*;
 
 public class TestDisplayController {
+
     private static final Logger LOG = LoggerFactory.getLogger(TestDisplayController.class);
 
     public static void main(String[] args) throws IOException, InterruptedException, AWTException {

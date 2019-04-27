@@ -5,8 +5,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
-import static de.acepe.streamdeck.StreamDeck.KEY_PIXEL_HEIGHT;
-import static de.acepe.streamdeck.StreamDeck.KEY_PIXEL_WIDTH;
+import static de.acepe.streamdeck.device.StreamDeck.KEY_PIXEL_HEIGHT;
+import static de.acepe.streamdeck.device.StreamDeck.KEY_PIXEL_WIDTH;
 
 public class IconHelper {
 
