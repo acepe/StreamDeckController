@@ -1,0 +1,156 @@
+.root {
+    -acepe-base-highlight: #e3efff;
+    -acepe-base: #444444;
+    -acepe-base-bright: #585858;
+    -acepe-base-brighter: #6c6c6c;
+
+    -fx-base: -acepe-base;
+    -fx-background: white;
+}
+
+.spaced {
+    -fx-spacing: 10;
+}
+
+.small-spaced {
+    -fx-spacing: 5;
+}
+
+.bordered {
+    -fx-padding: 10;
+}
+
+.small-bordered {
+    -fx-padding: 5;
+}
+
+.content-pane {
+    -fx-background-color: -acepe-base;
+    -fx-padding: 8;
+    -fx-spacing: 10;
+}
+
+.grid {
+    -fx-padding: 10;
+    -fx-hgap: 5;
+    -fx-vgap: 10;
+}
+
+.scroll-pane {
+    -fx-background-color: -acepe-base-bright;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .corner {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0 0 0 0;
+}
+
+.list-view > .virtual-flow > .corner {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:horizontal .track,
+.scroll-bar:vertical .track {
+    -fx-background-color: -acepe-base-brighter;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0em;
+    -fx-border-radius: 2em;
+}
+
+.scroll-bar:horizontal .increment-button,
+.scroll-bar:horizontal .decrement-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0em;
+    -fx-padding: 0 0 10 0;
+}
+
+.scroll-bar:vertical .increment-button,
+.scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0em;
+    -fx-padding: 0 10 0 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
+.scroll-bar:horizontal .thumb,
+.scroll-bar:vertical .thumb {
+    -fx-background-color: -acepe-base;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.progress-bar > .bar {
+    -fx-background-color: derive(-acepe-base, -10%);
+    -fx-background-insets: 1 1 1 1;
+    -fx-background-radius: 1;
+    -fx-padding: 0.75em;
+}
+
+.progress-bar > .track {
+    -fx-background-color: derive(-acepe-base, -30%);
+    -fx-background-radius: 1;
+}
+
+.square-button {
+    -fx-min-height: 50;
+    -fx-pref-width: 50;
+    -fx-pref-height: 50;
+}
+
+.deck-grid {
+    -fx-padding: 15;
+    -fx-hgap: 15;
+    -fx-vgap: 15;
+}
+
+.deck-button {
+    -fx-min-height: 90;
+    -fx-pref-width: 90;
+    -fx-pref-height: 90;
+    -fx-background-radius: 1em;
+}
+
+.settings-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -acepe-base-highlight;
+    -fx-padding: 10;
+}
+
+.settings-button,
+.back-button {
+    -fx-padding: 10;
+    -fx-background-color: -acepe-base;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-text-fill: -acepe-base-highlight;
+}
+
+.settings-button > .glyph-icon,
+.back-button > .glyph-icon {
+    -fx-fill: -acepe-base-highlight;
+}
+
+.settings-button:hover,
+.back-button:hover {
+    -fx-background-color: derive(-acepe-base, +30%);
+}
+
+.settings-button:pressed,
+.back-button:pressed {
+    -fx-background-color: derive(-acepe-base, -10%);
+}
+
+.image-button {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+}

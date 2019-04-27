@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import java.lang.String?>
+<ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" styleClass="bordered" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.streamdeck.ui.SettingsController">
+    <VBox styleClass="spaced">
+        <HBox styleClass="content-pane">
+            <Button fx:id="backButton" mnemonicParsing="false" onAction="#onSaveSettingsPerformed">
+                <styleClass>
+                    <String fx:value="back-button" />
+                    <String fx:value="square-button" />
+                </styleClass>
+            </Button>
+            <Label fx:id="settingsLabel" maxHeight="1.7976931348623157E308" text="Einstellungen">
+                <styleClass>
+                    <String fx:value="settings-title" />
+                </styleClass>
+            </Label>
+        </HBox>
+        <BorderPane styleClass="content-pane" VBox.vgrow="ALWAYS">
+            <center>
+
+            </center>
+        </BorderPane>
+    </VBox>
+</ScrollPane>
