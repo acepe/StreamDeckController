@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Random;
@@ -14,9 +15,10 @@ import static de.acepe.streamdeck.util.IconHelper.*;
 public class TestDisplayController {
     private static final Logger LOG = LoggerFactory.getLogger(TestDisplayController.class);
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException, AWTException {
         Random rnd = new Random();
         BufferedImage img = ImageIO.read(TestDisplayController.class.getResource("icon1.png"));
+        Robot robot = new Robot();
 
         IStreamDeck sd = StreamDeckDevices.getInstance().getStreamDeck();
         sd.addKeyListener(event -> {
@@ -41,6 +43,14 @@ public class TestDisplayController {
                 }
                 if (event.getKeyId() == 4) {
                     sd.setKeyBitmap(4, convertImage(createDefaultImage()));
+                }
+
+                if (event.getKeyId() == 5) {
+                    // Simulate a key press
+                    robot.keyPress(java.awt.event.KeyEvent.VK_CONTROL);
+                    robot.keyPress(java.awt.event.KeyEvent.VK_F1);
+                    robot.keyRelease(java.awt.event.KeyEvent.VK_F1);
+                    robot.keyRelease(java.awt.event.KeyEvent.VK_CONTROL);
                 }
             }
         });
