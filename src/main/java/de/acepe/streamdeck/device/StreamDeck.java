@@ -17,11 +17,6 @@ import static de.acepe.streamdeck.device.event.KeyEvent.Type;
 public class StreamDeck implements IStreamDeck {
     private static final Logger LOG = LoggerFactory.getLogger(StreamDeck.class);
 
-    public static final int KEY_COUNT = 15;
-    public static final int KEY_PIXEL_WIDTH = 72;
-    public static final int KEY_PIXEL_HEIGHT = 72;
-    public static final int KEY_PIXEL_DEPTH = 3;
-
     private static final byte DEFAULT_BRIGHTNESS = 99;
 
     private static final byte[] RESET_DATA = new byte[]{0x0B, 0x63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -114,6 +109,13 @@ public class StreamDeck implements IStreamDeck {
     }
 
     /**
+     * Queues a task to set the logo.
+     */
+    public void setLogo() {
+        commandDispatcher.submit(this::_setLogo);
+    }
+
+    /**
      * Returns the number of keys. There is only one Stream Deck released currently, but implemented in case future Stream Decks are released.
      *
      * @return the number of keys
@@ -132,7 +134,12 @@ public class StreamDeck implements IStreamDeck {
     public void setBrightness(int brightness) {
         brightness = brightness > 99 ? 99 : brightness < 0 ? 0 : brightness;
         this.currentBrightness[4] = (byte) brightness;
+        LOG.debug("Brightness set to {}", brightness);
         commandDispatcher.submit(this::_updateBrightnes);
+    }
+
+    public int getBrightness() {
+        return this.currentBrightness[4];
     }
 
     /**
@@ -238,6 +245,10 @@ public class StreamDeck implements IStreamDeck {
     private void _reset() {
         LOG.debug("Resetting");
         hidDevice.sendFeatureReport(RESET_DATA, (byte) RESET_DATA.length);
+    }
+
+    private void _setLogo() {
+        LOG.debug("Setting logo");
         hidDevice.sendFeatureReport(new byte[]{0x63}, (byte) 0x0B);
     }
 

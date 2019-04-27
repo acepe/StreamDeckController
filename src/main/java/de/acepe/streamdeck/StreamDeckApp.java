@@ -24,7 +24,7 @@ public class StreamDeckApp extends Application {
     private Injector injector;
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         System.setProperty("prism.lcdtext", "false");
         System.setProperty("https.protocols", "TLSv1.2");
 

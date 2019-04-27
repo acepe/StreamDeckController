@@ -1,5 +1,8 @@
 package de.acepe.streamdeck.util;
 
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
@@ -8,7 +11,31 @@ import java.awt.image.BufferedImage;
 import static de.acepe.streamdeck.device.StreamDeck.KEY_PIXEL_HEIGHT;
 import static de.acepe.streamdeck.device.StreamDeck.KEY_PIXEL_WIDTH;
 
-public class IconHelper {
+public final class IconHelper {
+
+    public static BufferedImage imageFromText(String text) {
+        BufferedImage img = new BufferedImage(KEY_PIXEL_WIDTH, KEY_PIXEL_HEIGHT, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = img.createGraphics();
+        Font font = new Font("Arial", Font.PLAIN, 48);
+        g2d.setFont(font);
+        g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+        g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+
+        g2d.setColor(Color.WHITE);
+        FontMetrics fm = g2d.getFontMetrics();
+        int x = (KEY_PIXEL_WIDTH - fm.stringWidth(text)) / 2;
+        // Determine the Y coordinate for the text (note we add the ascent, as in java 2d 0 is top of the screen)
+        int y = ((KEY_PIXEL_HEIGHT - fm.getHeight()) / 2) + fm.getAscent();
+        g2d.drawString(text, x, y);
+        g2d.dispose();
+        return img;
+    }
 
     public static BufferedImage createDefaultImage() {
         BufferedImage img = new BufferedImage(KEY_PIXEL_WIDTH, KEY_PIXEL_HEIGHT, BufferedImage.TYPE_INT_ARGB);
@@ -17,6 +44,11 @@ public class IconHelper {
         g.fillRect(0, 0, KEY_PIXEL_WIDTH, KEY_PIXEL_HEIGHT);
         g.dispose();
         return img;
+    }
+
+    public static byte[] convertImage(Image fxImage) {
+        BufferedImage bufferedImage = SwingFXUtils.fromFXImage(fxImage, null);
+        return convertImage(bufferedImage);
     }
 
     /**
@@ -32,16 +64,9 @@ public class IconHelper {
      * stream deck
      */
     public static byte[] convertImage(BufferedImage img) {
-        img = IconHelper.createResizedCopy(IconHelper.fillBackground(img, Color.BLACK));
-//        int[] pixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
-//        byte[] result = new byte[KEY_PIXEL_WIDTH * KEY_PIXEL_HEIGHT * 3];
-//        int imgDataCount = 0;
-//        // remove the alpha channel
-//        for (int i = 0; i < KEY_PIXEL_WIDTH * KEY_PIXEL_HEIGHT; i++) {
-//            // RGB -> BGR
-//            result[imgDataCount++] = (byte) ((pixels[i] >> 16) & 0xFF);
-//            result[imgDataCount++] = (byte) (pixels[i] & 0xFF);
-//            result[imgDataCount++] = (byte) ((pixels[i] >> 8) & 0xFF);
+        img = IconHelper.fillBackground(img, Color.BLACK);
+//        if (img.getHeight() > KEY_PIXEL_HEIGHT || img.getWidth() > KEY_PIXEL_WIDTH) {
+        img = IconHelper.createResizedCopy(img);
 //        }
 
         byte[] result = new byte[KEY_PIXEL_HEIGHT * KEY_PIXEL_WIDTH * 3];

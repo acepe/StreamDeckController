@@ -1,6 +1,6 @@
 package de.acepe.streamdeck.device.event;
 
-import de.acepe.streamdeck.device.StreamDeck;
+import de.acepe.streamdeck.device.IStreamDeck;
 
 import java.util.EventObject;
 
@@ -46,7 +46,7 @@ public class KeyEvent extends EventObject {
      */
     private final Type type;
 
-    public KeyEvent(StreamDeck source, int keyId, Type type) {
+    public KeyEvent(IStreamDeck source, int keyId, Type type) {
         super(source);
         this.keyId = keyId;
         this.type = type;
@@ -56,8 +56,8 @@ public class KeyEvent extends EventObject {
      * Returns the Stream Deck for which the event was created
      */
     @Override
-    public StreamDeck getSource() {
-        return (StreamDeck) super.getSource();
+    public IStreamDeck getSource() {
+        return (IStreamDeck) super.getSource();
     }
 
     /**

@@ -6,6 +6,11 @@ import de.acepe.streamdeck.device.event.KeyListener;
  * An interface to a stream deck.
  */
 public interface IStreamDeck {
+    int KEY_COUNT = 15;
+    int KEY_PIXEL_WIDTH = 72;
+    int KEY_PIXEL_HEIGHT = 72;
+    int KEY_PIXEL_DEPTH = 3;
+
     /**
      * Returns the number of keys. There is only one Stream Deck released currently, but implemented in case future Stream Decks are released.
      *
@@ -20,10 +25,14 @@ public interface IStreamDeck {
      */
     void setBrightness(int percent);
 
+    int getBrightness();
+
     /**
      * Instructs the Elgato Stream Deck to display the Elgato logo.
      */
     void reset();
+
+    void setLogo();
 
     /**
      * Closes device and instructs it to go back to the logo. Not strictly necessary, but nice to have!

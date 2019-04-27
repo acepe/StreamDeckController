@@ -20,10 +20,16 @@ public class TestDisplayController {
 
     public static void main(String[] args) throws IOException, InterruptedException, AWTException {
         Random rnd = new Random();
-        BufferedImage img = ImageIO.read(TestDisplayController.class.getResource("icon1.png"));
         Robot robot = new Robot();
 
+        BufferedImage img = ImageIO.read(TestDisplayController.class.getResource("icon1.png"));
+
         IStreamDeck sd = StreamDeckDevices.getInstance().getStreamDeck();
+        sd.reset();
+        sd.setBrightness(rnd.nextInt(99));
+
+        sd.setKeyBitmap(1, convertImage(img));
+
         sd.addKeyListener(event -> {
             LOG.info("Key Changed: {} - {}", event.getKeyId(), event.getType());
 
@@ -57,11 +63,6 @@ public class TestDisplayController {
                 }
             }
         });
-
-        sd.reset();
-        sd.setBrightness(rnd.nextInt(99));
-
-        sd.setKeyBitmap(1, convertImage(img));
 
         while (true) {
             Thread.sleep(1);

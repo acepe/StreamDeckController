@@ -1,8 +1,8 @@
 package de.acepe.streamdeck.app;
 
 public enum Screens {
-    MAIN("ui/main_view.fxml", "Controller", 630, 500),
-    SETTINGS("ui/settings.fxml", "Einstellungen", 700, 500);
+    MAIN("ui/main_view.fxml", "Controller", 570, 460),
+    SETTINGS("ui/settings.fxml", "Einstellungen", 570, 460);
 
     private final String resource;
     private final String title;

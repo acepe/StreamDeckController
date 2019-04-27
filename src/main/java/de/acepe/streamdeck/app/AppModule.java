@@ -5,9 +5,13 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
+import de.acepe.streamdeck.device.IStreamDeck;
+import de.acepe.streamdeck.device.StreamDeck;
+import de.acepe.streamdeck.device.StreamDeckDevices;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 
+import java.awt.*;
 import java.util.function.Supplier;
 
 public class AppModule extends AbstractModule {
@@ -27,6 +31,10 @@ public class AppModule extends AbstractModule {
         bind(String.class).annotatedWith(Names.named("APP_TITLE")).toInstance(APP_TITLE);
 
         bind(ScreenManager.class).in(Singleton.class);
+        bind(StreamDeckDevices.class).toInstance(StreamDeckDevices.getInstance());
+        bind(IStreamDeck.class).toInstance(StreamDeckDevices.getInstance().getStreamDeck());
+
+        bind(Robot.class).in(Singleton.class);
 
 //        FactoryModuleBuilder builder = new FactoryModuleBuilder();
 //        install(builder.build(OnDemandStreamFactory.class));
