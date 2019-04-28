@@ -41,8 +41,12 @@ public class DeckButton {
     }
 
     public void setText(String text) {
+        setText(text, null);
+    }
+
+    public void setText(String text, Integer fontSize) {
         this.text = text;
-        BufferedImage fromText = imageFromText(text);
+        BufferedImage fromText = imageFromText(text, fontSize);
         setImage(SwingFXUtils.toFXImage(fromText, null));
     }
 

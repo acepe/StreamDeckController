@@ -13,10 +13,10 @@ import static de.acepe.streamdeck.device.StreamDeck.KEY_PIXEL_WIDTH;
 
 public final class IconHelper {
 
-    public static BufferedImage imageFromText(String text) {
+    public static BufferedImage imageFromText(String text, Integer fontSize) {
         BufferedImage img = new BufferedImage(KEY_PIXEL_WIDTH, KEY_PIXEL_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = img.createGraphics();
-        Font font = new Font("Arial", Font.PLAIN, 48);
+        Font font = new Font("Arial", Font.PLAIN, fontSize == null ? 48 : fontSize);
         g2d.setFont(font);
         g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

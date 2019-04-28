@@ -45,8 +45,11 @@ public class StreamDeckApp extends Application {
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 
         primaryStage.setScene(scene);
-        primaryStage.setX(1000);
+        primaryStage.setX(1160);
         primaryStage.show();
+        primaryStage.setIconified(true);
+        primaryStage.setIconified(false);
+
         primaryStage.setOnCloseRequest((event -> screenManager.closeStages()));
 
         screenManager.setScreen(startScreen);

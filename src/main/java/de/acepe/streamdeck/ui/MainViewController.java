@@ -3,11 +3,11 @@ package de.acepe.streamdeck.ui;
 import de.acepe.streamdeck.app.ControlledScreen;
 import de.acepe.streamdeck.app.ScreenManager;
 import de.acepe.streamdeck.app.Screens;
-import de.acepe.streamdeck.backend.ButtonBehaviour;
 import de.acepe.streamdeck.backend.DeckButton;
 import de.acepe.streamdeck.backend.DeckManager;
+import de.acepe.streamdeck.backend.behaviours.ExecuteProgrammBehaviour;
 import de.acepe.streamdeck.backend.behaviours.HotKeyBehaviour;
-import de.acepe.streamdeck.backend.behaviours.OpenFileBehaviour;
+import de.acepe.streamdeck.backend.behaviours.OpenLocationBehaviour;
 import de.acepe.streamdeck.backend.behaviours.StreamDeckToggleBrightnessBehavior;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -17,9 +17,6 @@ import javafx.scene.image.ImageView;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 
@@ -69,13 +66,17 @@ public class MainViewController implements ControlledScreen {
     public MainViewController(ScreenManager screenManager, DeckManager deckManager,
                               Provider<StreamDeckToggleBrightnessBehavior> toggleBrightness,
                               Provider<HotKeyBehaviour> hotkey,
-                              Provider<OpenFileBehaviour> openFile) {
+                              Provider<ExecuteProgrammBehaviour> executeProgramm,
+                              Provider<OpenLocationBehaviour> openLocation) {
         this.screenManager = screenManager;
         this.deckManager = deckManager;
 
         IntStream.rangeClosed(0, 10).forEach(i -> deckManager.addButton(i, new DeckButton(String.valueOf(i))));
         IntStream.rangeClosed(11, 14).forEach(i -> deckManager.addButton(i, new DeckButton("D" + (15 - i))));
-        deckManager.getButton(0).addBehaviour(toggleBrightness.get());
+
+        DeckButton brightnessButton = deckManager.getButton(0);
+        brightnessButton.setText("Br");
+        brightnessButton.addBehaviour(toggleBrightness.get());
 
         HotKeyBehaviour vdesk1 = hotkey.get();
         vdesk1.setKey(VK_F1);
@@ -98,13 +99,25 @@ public class MainViewController implements ControlledScreen {
         deckManager.getButton(12).addBehaviour(vdesk3);
         deckManager.getButton(11).addBehaviour(vdesk4);
 
-        OpenFileBehaviour startChrome = openFile.get();
-        try {
-            startChrome.setUri(new URI("https://google.de"));
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        deckManager.getButton(9).addBehaviour(startChrome);
+        OpenLocationBehaviour openGoogle = openLocation.get();
+        openGoogle.setUri("https://google.de");
+        DeckButton openGoogleButton = deckManager.getButton(9);
+        openGoogleButton.setText("Google", 20);
+        openGoogleButton.addBehaviour(openGoogle);
+
+        OpenLocationBehaviour openHome = openLocation.get();
+        openHome.setFile(System.getProperty("user.home"));
+        DeckButton openHomeButton = deckManager.getButton(7);
+        openHomeButton.setText("⌂", 60);
+        openHomeButton.addBehaviour(openHome);
+
+        ExecuteProgrammBehaviour startChrome = executeProgramm.get();
+        startChrome.setProgramm("/usr/bin/google-chrome");
+        startChrome.setArguments("--incognito");
+        DeckButton chromeButton = deckManager.getButton(8);
+        chromeButton.setText("Chrome", 20);
+        chromeButton.addBehaviour(startChrome);
+
         deckManager.updateDeck();
     }
 
