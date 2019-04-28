@@ -5,10 +5,7 @@ import de.acepe.streamdeck.app.ScreenManager;
 import de.acepe.streamdeck.app.Screens;
 import de.acepe.streamdeck.backend.DeckButton;
 import de.acepe.streamdeck.backend.DeckManager;
-import de.acepe.streamdeck.backend.behaviours.ExecuteProgrammBehaviour;
-import de.acepe.streamdeck.backend.behaviours.HotKeyBehaviour;
-import de.acepe.streamdeck.backend.behaviours.OpenLocationBehaviour;
-import de.acepe.streamdeck.backend.behaviours.StreamDeckToggleBrightnessBehavior;
+import de.acepe.streamdeck.backend.behaviours.*;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.fxml.FXML;
@@ -67,7 +64,9 @@ public class MainViewController implements ControlledScreen {
                               Provider<StreamDeckToggleBrightnessBehavior> toggleBrightness,
                               Provider<HotKeyBehaviour> hotkey,
                               Provider<ExecuteProgrammBehaviour> executeProgramm,
-                              Provider<OpenLocationBehaviour> openLocation) {
+                              Provider<OpenLocationBehaviour> openLocation,
+                              Provider<AnimatedBehaviour> animatedBehaviour,
+                              Provider<SleepBehaviour> sleepBehaviour) {
         this.screenManager = screenManager;
         this.deckManager = deckManager;
 
@@ -118,6 +117,23 @@ public class MainViewController implements ControlledScreen {
         chromeButton.setText("Chrome", 20);
         chromeButton.addBehaviour(startChrome);
 
+        SleepBehaviour sleep = sleepBehaviour.get();
+        sleep.setDurationInMillis(2000);
+        HotKeyBehaviour vdesk1comp = hotkey.get();
+        vdesk1comp.setKey(VK_F1);
+        vdesk1comp.setModifier1(VK_CONTROL);
+        OpenLocationBehaviour openHomeComp = openLocation.get();
+        openHomeComp.setFile(System.getProperty("user.home"));
+        DeckButton compoundButton = deckManager.getButton(10);
+        compoundButton.setText("Multi", 30);
+        compoundButton.addBehaviour(vdesk1comp, sleep, openHomeComp);
+
+        AnimatedBehaviour animated = animatedBehaviour.get();
+        animated.setPeriod(100);
+        DeckButton animatedButton = deckManager.getButton(6);
+        animatedButton.addBehaviour(animated);
+        animatedButton.setText("Anim", 30);
+
         deckManager.updateDeck();
     }
 
@@ -141,6 +157,7 @@ public class MainViewController implements ControlledScreen {
         buttons.add(button14);
 
         bindDeckButtons();
+        deckManager.setUpdateCallback(this::updateButtonUI);
     }
 
     private void bindDeckButtons() {
@@ -153,6 +170,12 @@ public class MainViewController implements ControlledScreen {
         DeckButton deckButton = deckManager.getButton(index);
         button.setGraphic(new ImageView(deckButton.getImage()));
         button.setOnAction(event -> deckManager.fireActionFromUI(index));
+    }
+
+    private void updateButtonUI(int index) {
+        Button button = buttons.get(index);
+        DeckButton deckButton = deckManager.getButton(index);
+        ((ImageView) button.getGraphic()).setImage(deckButton.getImage());
     }
 
     @FXML

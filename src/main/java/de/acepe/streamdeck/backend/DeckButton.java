@@ -6,6 +6,7 @@ import javafx.scene.image.Image;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static de.acepe.streamdeck.util.IconHelper.convertImage;
@@ -18,6 +19,7 @@ public class DeckButton {
     private byte[] imageRaw;
     private Image image;
     private String text;
+    private int index;
 
     public DeckButton(String text) {
         setText(text);
@@ -50,9 +52,12 @@ public class DeckButton {
         setImage(SwingFXUtils.toFXImage(fromText, null));
     }
 
-    public void addBehaviour(ButtonBehaviour buttonBehaviour) {
-        buttonBehaviour.bindButton(this);
-        behaviours.add(buttonBehaviour);
+    public final void addBehaviour(ButtonBehaviour... buttonBehaviour) {
+        Arrays.stream(buttonBehaviour).forEach(t -> {
+                    t.bindButton(this);
+                    behaviours.add(t);
+                }
+        );
     }
 
     public void removeBehaviour(ButtonBehaviour buttonBehaviour) {
@@ -75,5 +80,13 @@ public class DeckButton {
 
     public byte[] getImageRaw() {
         return imageRaw;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    public int getIndex() {
+        return index;
     }
 }

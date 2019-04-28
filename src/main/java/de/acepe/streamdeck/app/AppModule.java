@@ -7,7 +7,6 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 import de.acepe.streamdeck.backend.DeckManager;
 import de.acepe.streamdeck.device.IStreamDeck;
-import de.acepe.streamdeck.device.StreamDeck;
 import de.acepe.streamdeck.device.StreamDeckDevices;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

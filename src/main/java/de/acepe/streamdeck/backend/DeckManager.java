@@ -6,6 +6,7 @@ import de.acepe.streamdeck.device.event.KeyEvent;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import static de.acepe.streamdeck.device.event.KeyEvent.Type.PRESSED;
@@ -15,6 +16,9 @@ public class DeckManager {
 
     private final List<DeckButton> buttons = new ArrayList<>();
     private final IStreamDeck deck;
+
+    @SuppressWarnings("FieldHasSetterButNoGetter")
+    private Consumer<Integer> updateCallback;
 
     @Inject
     DeckManager(IStreamDeck deck) {
@@ -50,15 +54,25 @@ public class DeckManager {
             throw new IllegalArgumentException("Index must be between 0 and 14");
         }
         buttons.set(index, button);
+        button.setIndex(index);
+    }
+
+    public void removeButton(int index) {
+        DeckButton removed = buttons.remove(index);
+        removed.setIndex(-1);
     }
 
     public void updateDeck() {
         deck.reset();
         IntStream.rangeClosed(0, 14).filter(i -> buttons.get(i) != null).forEach(this::updateButton);
+
     }
 
-    private void updateButton(int index) {
+    public void updateButton(int index) {
         deck.setKeyBitmap(index, buttons.get(index).getImageRaw());
+        if (updateCallback != null) {
+            updateCallback.accept(index);
+        }
     }
 
     public void fireActionFromUI(int index) {
@@ -71,5 +85,9 @@ public class DeckManager {
 
     public void stop() {
         deck.dispose();
+    }
+
+    public void setUpdateCallback(Consumer<Integer> updateCallback) {
+        this.updateCallback = updateCallback;
     }
 }

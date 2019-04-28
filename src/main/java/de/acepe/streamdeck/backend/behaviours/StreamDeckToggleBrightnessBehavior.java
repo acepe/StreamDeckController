@@ -21,7 +21,6 @@ public class StreamDeckToggleBrightnessBehavior extends BasicButtonBehaviour {
     @Override
     public void onButtonReleased(KeyEvent event) {
         int brightness = deck.getBrightness();
-        System.out.println(brightness);
         if (brightness >= 99) {
             brightness = 0;
         }
