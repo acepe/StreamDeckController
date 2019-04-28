@@ -40,10 +40,8 @@ import java.util.List;
 public final class StreamDeckDevices {
 
     private static final Logger LOG = LoggerFactory.getLogger(StreamDeckDevices.class);
-
     private static final Integer VENDOR_ID = 0x0FD9;
     private static final Integer PRODUCT_ID = 0x0060;
-    public static final String SERIAL_NUMBER = null;
 
     private final List<IStreamDeck> streamDecks = new ArrayList<>(0);
 
@@ -64,19 +62,6 @@ public final class StreamDeckDevices {
         streamDecks.clear();
         streamDecks.addAll(getAllStreamDecks());
     }
-
-//    /**
-//     * Returns the first Stream Deck found. Will be ready to use as will already have been prepared!
-//     *
-//     * @return
-//     */
-//    public static IStreamDeck getFirstStreamDeck() {
-//        HidServices hidServices = HidManager.getHidServices();
-//        hidServices.start();
-//
-//        HidDevice hidDevice = hidServices.getHidDevice(VENDOR_ID, PRODUCT_ID, SERIAL_NUMBER);
-//        return hidDevice == null ? null : new StreamDeck(hidDevice);
-//    }
 
     private ArrayList<IStreamDeck> getAllStreamDecks() {
         LOG.info("Scanning for devices");

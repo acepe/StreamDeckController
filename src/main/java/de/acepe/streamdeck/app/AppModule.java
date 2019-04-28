@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
+import de.acepe.streamdeck.backend.DeckManager;
 import de.acepe.streamdeck.device.IStreamDeck;
 import de.acepe.streamdeck.device.StreamDeck;
 import de.acepe.streamdeck.device.StreamDeckDevices;
@@ -35,6 +36,8 @@ public class AppModule extends AbstractModule {
         bind(IStreamDeck.class).toInstance(StreamDeckDevices.getInstance().getStreamDeck());
 
         bind(Robot.class).in(Singleton.class);
+
+        bind(DeckManager.class).in(Singleton.class);
 
 //        FactoryModuleBuilder builder = new FactoryModuleBuilder();
 //        install(builder.build(OnDemandStreamFactory.class));

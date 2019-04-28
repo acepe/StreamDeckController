@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import de.acepe.streamdeck.app.AppModule;
 import de.acepe.streamdeck.app.ScreenManager;
 import de.acepe.streamdeck.app.Screens;
+import de.acepe.streamdeck.backend.DeckManager;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -20,6 +21,8 @@ public class StreamDeckApp extends Application {
 
     @Inject
     private ScreenManager screenManager;
+    @Inject
+    private DeckManager deckManager;
 
     private Injector injector;
 
@@ -47,6 +50,12 @@ public class StreamDeckApp extends Application {
         primaryStage.setOnCloseRequest((event -> screenManager.closeStages()));
 
         screenManager.setScreen(startScreen);
+    }
+
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        deckManager.stop();
     }
 
     public static void main(String[] args) {

@@ -159,6 +159,10 @@ public class StreamDeck implements IStreamDeck {
         }
         reset();
 
+        stopKeyListenerThread();
+        commandDispatcher.shutdownNow();
+        eventDispatcher.shutdownNow();
+
         hidDevice.close();
         hidDevice = null;
     }
@@ -232,11 +236,14 @@ public class StreamDeck implements IStreamDeck {
         synchronized (keyListeners) {
             keyListeners.remove(listener);
             if (keyListeners.isEmpty() && keyListenTask != null) {
-                isListening = false;
-                keyListenTask.setDaemon(false);
-                keyListenTask = null;
+                stopKeyListenerThread();
             }
         }
+    }
+
+    private void stopKeyListenerThread() {
+        isListening = false;
+        keyListenTask = null;
     }
 
     /**

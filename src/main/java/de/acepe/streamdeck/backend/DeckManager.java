@@ -68,4 +68,8 @@ public class DeckManager {
         }
         deckButton.onButtonReleased(new KeyEvent(deck, index, RELEASED));
     }
+
+    public void stop() {
+        deck.dispose();
+    }
 }

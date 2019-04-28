@@ -60,4 +60,5 @@ public interface IStreamDeck {
      * @param listener A listener you want to unregister
      */
     void removeKeyListener(KeyListener listener);
+
 }
