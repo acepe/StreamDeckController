@@ -82,6 +82,9 @@ public final class StreamDeckDevices {
                 ret.add(new StreamDeck(device));
             }
         }
+        if (ret.isEmpty()){
+            ret.add(new DummyDeck());
+        }
         return ret;
     }
 
