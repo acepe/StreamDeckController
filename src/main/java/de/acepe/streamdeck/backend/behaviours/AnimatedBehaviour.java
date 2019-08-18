@@ -1,26 +1,24 @@
+/*
 package de.acepe.streamdeck.backend.behaviours;
 
 import de.acepe.streamdeck.backend.ButtonBehaviour;
 import de.acepe.streamdeck.backend.DeckButton;
-import de.acepe.streamdeck.backend.DeckManager;
+import de.acepe.streamdeck.backend.config.Page;
 import de.acepe.streamdeck.device.event.KeyEvent;
 
-import javax.inject.Inject;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class AnimatedBehaviour implements ButtonBehaviour {
 
-    private final DeckManager deckManager;
-
     private DeckButton deckButton;
     private Timer timer;
     private int currentFrame;
     private int period = 100;
+    private Page page;
 
-    @Inject
-    public AnimatedBehaviour(DeckManager deckManager) {
-        this.deckManager = deckManager;
+    public void bindPage(Page page) {
+        this.page = page;
     }
 
     @Override
@@ -59,12 +57,12 @@ public class AnimatedBehaviour implements ButtonBehaviour {
         }
         deckButton.setText(String.valueOf(currentFrame));
         currentFrame++;
-        deckManager.updateButton(deckButton.getIndex());
+        page.updateButton(deckButton.getIndex());
     }
 
     @Override
     public void unbindButton(DeckButton deckButton) {
-
+        stopTimer();
     }
 
     @Override
@@ -91,4 +89,6 @@ public class AnimatedBehaviour implements ButtonBehaviour {
     public int getPeriod() {
         return period;
     }
+
 }
+*/

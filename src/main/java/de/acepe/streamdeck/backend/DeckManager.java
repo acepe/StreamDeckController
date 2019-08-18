@@ -1,36 +1,49 @@
 package de.acepe.streamdeck.backend;
 
+import de.acepe.streamdeck.backend.config.Page;
 import de.acepe.streamdeck.device.IStreamDeck;
 import de.acepe.streamdeck.device.event.KeyEvent;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.IntStream;
 
 import static de.acepe.streamdeck.device.event.KeyEvent.Type.PRESSED;
 import static de.acepe.streamdeck.device.event.KeyEvent.Type.RELEASED;
 
 public class DeckManager {
 
-    private final List<DeckButton> buttons = new ArrayList<>();
     private final IStreamDeck deck;
 
-    @SuppressWarnings("FieldHasSetterButNoGetter")
-    private Consumer<Integer> updateCallback;
+    private Consumer<Integer> uiCallback;
+    private Page currentPage = new Page("empty");
 
     @Inject
     DeckManager(IStreamDeck deck) {
         this.deck = deck;
-
+        deck.reset();
+        deck.setLogo();
         deck.addKeyListener(this::onDeckEventsReceived);
+    }
 
-        IntStream.rangeClosed(0, 14).forEach(i -> buttons.add(null));
+    public void bindUICallback(Consumer<Integer> uiCallback) {
+        this.uiCallback = uiCallback;
+        currentPage.bindDeckManager(deck, uiCallback);
+    }
+
+    public void setCurrentPage(Page page) {
+        currentPage.unbindDeckManager();
+        currentPage = page;
+        currentPage.bindDeckManager(deck, uiCallback);
+        currentPage.update();
     }
 
     private void onDeckEventsReceived(KeyEvent keyEvent) {
-        DeckButton deckButton = buttons.get(keyEvent.getKeyId());
+        if (currentPage == null) {
+            return;
+        }
+
+        DeckButton deckButton = currentPage.getButton(keyEvent.getKeyId());
+
         if (deckButton != null) {
             KeyEvent.Type type = keyEvent.getType();
             if (type == PRESSED) {
@@ -41,53 +54,17 @@ public class DeckManager {
         }
     }
 
-    public List<DeckButton> getButtons() {
-        return buttons;
-    }
-
-    public DeckButton getButton(int i) {
-        return buttons.get(i);
-    }
-
-    public void addButton(int index, DeckButton button) {
-        if (index < 0 || index > 14) {
-            throw new IllegalArgumentException("Index must be between 0 and 14");
-        }
-        buttons.set(index, button);
-        button.setIndex(index);
-    }
-
-    public void removeButton(int index) {
-        DeckButton removed = buttons.remove(index);
-        removed.setIndex(-1);
-    }
-
-    public void updateDeck() {
-        deck.reset();
-        IntStream.rangeClosed(0, 14).filter(i -> buttons.get(i) != null).forEach(this::updateButton);
-
-    }
-
-    public void updateButton(int index) {
-        deck.setKeyBitmap(index, buttons.get(index).getImageRaw());
-        if (updateCallback != null) {
-            updateCallback.accept(index);
-        }
-    }
-
     public void fireActionFromUI(int index) {
-        DeckButton deckButton = buttons.get(index);
-        if (deckButton == null) {
-            return;
-        }
-        deckButton.onButtonReleased(new KeyEvent(deck, index, RELEASED));
+        currentPage.fireActionFromUI(index, deck);
     }
 
     public void stop() {
         deck.dispose();
+        currentPage.unbindDeckManager();
     }
 
-    public void setUpdateCallback(Consumer<Integer> updateCallback) {
-        this.updateCallback = updateCallback;
+    public Page getCurrentPage() {
+        return currentPage;
     }
+
 }

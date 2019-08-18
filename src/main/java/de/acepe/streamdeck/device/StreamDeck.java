@@ -250,7 +250,7 @@ public class StreamDeck implements IStreamDeck {
      * Sends reset-command to ESD
      */
     private void _reset() {
-        LOG.debug("Resetting");
+        LOG.info("Resetting");
         hidDevice.sendFeatureReport(RESET_DATA, (byte) RESET_DATA.length);
     }
 
