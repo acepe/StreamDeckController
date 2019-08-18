@@ -16,6 +16,7 @@ import javafx.scene.image.ImageView;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static java.awt.event.KeyEvent.*;
@@ -25,7 +26,8 @@ public class MainViewController implements ControlledScreen {
     private final ArrayList<Button> buttons = new ArrayList<>(15);
     private final ScreenManager screenManager;
     private final DeckManager deckManager;
-    private final Page page;
+    private final Page page1;
+    private final Page page2;
 
     @FXML
     private Button button0;
@@ -65,6 +67,7 @@ public class MainViewController implements ControlledScreen {
     public MainViewController(ScreenManager screenManager, DeckManager deckManager,
                               Provider<StreamDeckToggleBrightnessBehavior> toggleBrightness,
                               Provider<HotKeyBehaviour> hotkey,
+                              Provider<ShowPageBehaviour> showPage,
                               Provider<ExecuteProgrammBehaviour> executeProgramm,
                               Provider<OpenLocationBehaviour> openLocation,
                               Provider<SleepBehaviour> sleepBehaviour) {
@@ -72,16 +75,42 @@ public class MainViewController implements ControlledScreen {
         this.deckManager = deckManager;
         deckManager.bindUICallback(this::updateButtonUI);
 
-        page = createPage(toggleBrightness, hotkey, executeProgramm, openLocation, sleepBehaviour);
+        page1 = new Page("Page 1");
+        page1.setId(UUID.randomUUID());
+
+        page2 = new Page("Page 2");
+        page2.setId(UUID.randomUUID());
+
+        configurePage1(toggleBrightness, hotkey, executeProgramm, openLocation, sleepBehaviour, showPage);
+        configurePage2(showPage);
+
+        deckManager.registerPage(page1);
+        deckManager.registerPage(page2);
     }
 
-    private Page createPage(Provider<StreamDeckToggleBrightnessBehavior> toggleBrightness, Provider<HotKeyBehaviour> hotkey, Provider<ExecuteProgrammBehaviour> executeProgramm, Provider<OpenLocationBehaviour> openLocation, Provider<SleepBehaviour> sleepBehaviour) {
-        Page page = new Page("First Page");
+    private void configurePage2(Provider<ShowPageBehaviour> showPage) {
+        ShowPageBehaviour showPageBehaviour = showPage.get();
+        showPageBehaviour.setPageId(page1.getId());
 
-        IntStream.rangeClosed(0, 10).forEach(i -> page.addButton(i, new DeckButton(String.valueOf(i))));
-        IntStream.rangeClosed(11, 14).forEach(i -> page.addButton(i, new DeckButton("D" + (15 - i))));
+        DeckButton showPage1Button = new DeckButton();
+        showPage1Button.setText("Page 1", 20);
+        showPage1Button.addBehaviour(showPageBehaviour);
+        page2.addButton(4, showPage1Button);
 
-        DeckButton brightnessButton = page.getButton(0);
+    }
+
+    private void configurePage1(Provider<StreamDeckToggleBrightnessBehavior> toggleBrightness, Provider<HotKeyBehaviour> hotkey, Provider<ExecuteProgrammBehaviour> executeProgramm, Provider<OpenLocationBehaviour> openLocation, Provider<SleepBehaviour> sleepBehaviour, Provider<ShowPageBehaviour> showPage) {
+//        IntStream.rangeClosed(0, 10).forEach(i -> page1.addButton(i, new DeckButton(String.valueOf(i))));
+        IntStream.rangeClosed(11, 14).forEach(i -> page1.addButton(i, new DeckButton("D" + (15 - i))));
+
+        ShowPageBehaviour showPageBehaviour = showPage.get();
+        showPageBehaviour.setPageId(page2.getId());
+
+        DeckButton showPage2Button = page1.getButton(4);
+        showPage2Button.setText("Page 2", 20);
+        showPage2Button.addBehaviour(showPageBehaviour);
+
+        DeckButton brightnessButton = page1.getButton(0);
         brightnessButton.setText("Br");
         brightnessButton.addBehaviour(toggleBrightness.get());
 
@@ -101,27 +130,27 @@ public class MainViewController implements ControlledScreen {
         vdesk4.setKey(VK_F4);
         vdesk4.setModifier1(VK_CONTROL);
 
-        page.getButton(14).addBehaviour(vdesk1);
-        page.getButton(13).addBehaviour(vdesk2);
-        page.getButton(12).addBehaviour(vdesk3);
-        page.getButton(11).addBehaviour(vdesk4);
+        page1.getButton(14).addBehaviour(vdesk1);
+        page1.getButton(13).addBehaviour(vdesk2);
+        page1.getButton(12).addBehaviour(vdesk3);
+        page1.getButton(11).addBehaviour(vdesk4);
 
         OpenLocationBehaviour openGoogle = openLocation.get();
         openGoogle.setUri("https://google.de");
-        DeckButton openGoogleButton = page.getButton(9);
+        DeckButton openGoogleButton = page1.getButton(9);
         openGoogleButton.setText("Google", 20);
         openGoogleButton.addBehaviour(openGoogle);
 
         OpenLocationBehaviour openHome = openLocation.get();
         openHome.setFile(System.getProperty("user.home"));
-        DeckButton openHomeButton = page.getButton(7);
+        DeckButton openHomeButton = page1.getButton(7);
         openHomeButton.setText("⌂", 60);
         openHomeButton.addBehaviour(openHome);
 
         ExecuteProgrammBehaviour startChrome = executeProgramm.get();
         startChrome.setProgramm("/usr/bin/google-chrome");
         startChrome.setArguments("--incognito");
-        DeckButton chromeButton = page.getButton(8);
+        DeckButton chromeButton = page1.getButton(8);
         chromeButton.setText("Chrome", 20);
         chromeButton.addBehaviour(startChrome);
 
@@ -132,11 +161,9 @@ public class MainViewController implements ControlledScreen {
         vdesk1comp.setModifier1(VK_CONTROL);
         OpenLocationBehaviour openHomeComp = openLocation.get();
         openHomeComp.setFile(System.getProperty("user.home"));
-        DeckButton compoundButton = page.getButton(10);
+        DeckButton compoundButton = page1.getButton(10);
         compoundButton.setText("Multi", 30);
         compoundButton.addBehaviour(vdesk1comp, sleep, openHomeComp);
-
-        return page;
     }
 
     @FXML
@@ -160,7 +187,7 @@ public class MainViewController implements ControlledScreen {
 
         configureButtons();
 
-        deckManager.setCurrentPage(page);
+        deckManager.setCurrentPage(page1.getId());
     }
 
     private void configureButtons() {

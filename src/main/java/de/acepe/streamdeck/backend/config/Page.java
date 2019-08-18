@@ -4,8 +4,10 @@ import de.acepe.streamdeck.backend.DeckButton;
 import de.acepe.streamdeck.device.IStreamDeck;
 import de.acepe.streamdeck.device.event.KeyEvent;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
@@ -16,6 +18,7 @@ public class Page {
 
     private final List<DeckButton> buttons = new ArrayList<>(15);
 
+    private UUID id;
     private String title;
 
     private Consumer<Integer> updateCallback;
@@ -23,7 +26,7 @@ public class Page {
 
     public Page(String title) {
         this.title = title;
-        IntStream.rangeClosed(0, 14).forEach(i -> buttons.add(null));
+        IntStream.rangeClosed(0, 14).forEach(i -> buttons.add(new DeckButton()));
     }
 
     public String getTitle() {
@@ -79,7 +82,6 @@ public class Page {
     }
 
     public void unbindDeckManager() {
-        forAllButtonsDo(index -> buttons.get(index).clearBehaviours());
         deck = null;
         updateCallback = null;
 
@@ -94,4 +96,11 @@ public class Page {
         this.updateCallback = updateCallback;
     }
 
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 }

@@ -5,6 +5,8 @@ import de.acepe.streamdeck.device.IStreamDeck;
 import de.acepe.streamdeck.device.event.KeyEvent;
 
 import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import static de.acepe.streamdeck.device.event.KeyEvent.Type.PRESSED;
@@ -13,6 +15,7 @@ import static de.acepe.streamdeck.device.event.KeyEvent.Type.RELEASED;
 public class DeckManager {
 
     private final IStreamDeck deck;
+    private final HashMap<UUID, Page> pages = new HashMap<>();
 
     private Consumer<Integer> uiCallback;
     private Page currentPage = new Page("empty");
@@ -30,9 +33,13 @@ public class DeckManager {
         currentPage.bindDeckManager(deck, uiCallback);
     }
 
-    public void setCurrentPage(Page page) {
+    public void registerPage(Page page) {
+        pages.put(page.getId(), page);
+    }
+
+    public void setCurrentPage(UUID pageId) {
         currentPage.unbindDeckManager();
-        currentPage = page;
+        currentPage = pages.get(pageId);
         currentPage.bindDeckManager(deck, uiCallback);
         currentPage.update();
     }

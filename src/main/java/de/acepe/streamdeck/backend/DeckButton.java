@@ -21,6 +21,9 @@ public class DeckButton {
     private String text;
     private int index;
 
+    public DeckButton() {
+    }
+
     public DeckButton(String text) {
         setText(text);
     }
