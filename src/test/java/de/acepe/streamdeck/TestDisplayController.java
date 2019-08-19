@@ -1,8 +1,12 @@
 package de.acepe.streamdeck;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import de.acepe.streamdeck.app.AppModule;
 import de.acepe.streamdeck.device.IStreamDeck;
-import de.acepe.streamdeck.device.StreamDeckDevices;
 import de.acepe.streamdeck.device.event.KeyEvent;
+import javafx.application.Application;
+import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +21,7 @@ import static de.acepe.streamdeck.util.IconHelper.*;
 public class TestDisplayController {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestDisplayController.class);
+    private static Injector injector;
 
     public static void main(String[] args) throws IOException, InterruptedException, AWTException {
         Random rnd = new Random();
@@ -24,7 +29,13 @@ public class TestDisplayController {
 
         BufferedImage img = ImageIO.read(TestDisplayController.class.getResource("icon1.png"));
 
-        IStreamDeck sd = StreamDeckDevices.getInstance().getStreamDeck();
+        injector = Guice.createInjector(new AppModule(new Application() {
+            @Override
+            public void start(Stage primaryStage) throws Exception {
+
+            }
+        }, TestDisplayController::getInjector));
+        IStreamDeck sd = injector.getInstance(IStreamDeck.class);
         sd.reset();
         sd.setBrightness(rnd.nextInt(99));
 
@@ -67,5 +78,9 @@ public class TestDisplayController {
         while (true) {
             Thread.sleep(1);
         }
+    }
+
+    public static Injector getInjector() {
+        return injector;
     }
 }

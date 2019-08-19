@@ -3,9 +3,10 @@ package de.acepe.streamdeck.device;
 import de.acepe.streamdeck.device.event.KeyListener;
 
 public class DummyDeck implements IStreamDeck {
+
     @Override
     public int getNumberOfKeys() {
-        return 15;
+        return IStreamDeck.KEY_COUNT;
     }
 
     @Override

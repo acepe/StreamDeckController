@@ -66,6 +66,7 @@ public class DeckManager {
     }
 
     public void stop() {
+        deck.setLogo();
         deck.dispose();
         currentPage.unbindDeckManager();
     }

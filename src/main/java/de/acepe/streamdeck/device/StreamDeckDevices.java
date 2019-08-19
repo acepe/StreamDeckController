@@ -6,6 +6,7 @@ import org.hid4java.HidServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,20 +46,12 @@ public final class StreamDeckDevices {
 
     private final List<IStreamDeck> streamDecks = new ArrayList<>(0);
 
-    private static StreamDeckDevices instance;
-
-    public static StreamDeckDevices getInstance() {
-        if (instance == null) {
-            instance = new StreamDeckDevices();
-        }
-        return instance;
-    }
-
+    @Inject
     private StreamDeckDevices() {
-        initDecks();
+        discoverDevices();
     }
 
-    private void initDecks() {
+    public void discoverDevices() {
         streamDecks.clear();
         streamDecks.addAll(getAllStreamDecks());
     }
@@ -79,11 +72,11 @@ public final class StreamDeckDevices {
                 LOG.info("  Serial-No:   " + device.getSerialNumber());
                 LOG.info("  Path:        " + device.getPath());
                 LOG.info("");
-                ret.add(new StreamDeck(device));
+                ret.add(new ClassicStreamDeck(device));
             }
         }
-        if (ret.isEmpty()){
-            ret.add(new DummyDeck());
+        if (ret.isEmpty()) {
+            LOG.info("No Stream Deck found…");
         }
         return ret;
     }
@@ -102,5 +95,6 @@ public final class StreamDeckDevices {
     public int getStreamDeckSize() {
         return streamDecks.size();
     }
+
 }
  
