@@ -61,4 +61,7 @@ public interface IStreamDeck {
      */
     void removeKeyListener(KeyListener listener);
 
+    String getDeviceName();
+
+    String getDeviceId();
 }

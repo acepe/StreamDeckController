@@ -163,6 +163,7 @@ public class ClassicStreamDeck implements IStreamDeck {
         stopKeyListenerThread();
         commandDispatcher.shutdownNow();
         eventDispatcher.shutdownNow();
+        keyListeners.clear();
 
         hidDevice.close();
         hidDevice = null;
@@ -305,6 +306,14 @@ public class ClassicStreamDeck implements IStreamDeck {
 
         p2[5] = (byte) (keyId + 1);
         return p2;
+    }
+
+    public String getDeviceName() {
+        return hidDevice.getProduct();
+    }
+
+    public String getDeviceId() {
+        return hidDevice.getId();
     }
 
 }

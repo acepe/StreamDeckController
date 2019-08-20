@@ -114,10 +114,32 @@ public class StreamDeck implements IStreamDeck {
     }
 
     public void reconnect() {
+        IStreamDeck connectedDeck = streamDeckDevices.getStreamDeck();
+        if (connectedDeck != null) {
+            connectedDeck.dispose();
+        }
         streamDeckDevices.discoverDevices();
         IStreamDeck streamDeck = streamDeckDevices.getStreamDeck();
         if (streamDeck != null) {
             keyListeners.forEach(streamDeck::addKeyListener);
+        }
+    }
+
+    public String getDeviceName() {
+        IStreamDeck streamDeck = streamDeckDevices.getStreamDeck();
+        if (streamDeck == null) {
+            return dummyDeck.getDeviceName();
+        } else {
+            return streamDeck.getDeviceName();
+        }
+    }
+
+    public String getDeviceId() {
+        IStreamDeck streamDeck = streamDeckDevices.getStreamDeck();
+        if (streamDeck == null) {
+            return dummyDeck.getDeviceId();
+        } else {
+            return streamDeck.getDeviceId();
         }
     }
 

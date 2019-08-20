@@ -5,7 +5,6 @@
     -acepe-base-brighter: #6c6c6c;
 
     -fx-base: -acepe-base;
-    -fx-background: white;
 }
 
 .spaced {
@@ -33,7 +32,7 @@
 .grid {
     -fx-padding: 10;
     -fx-hgap: 5;
-    -fx-vgap: 10;
+    -fx-vgap: 5;
 }
 
 .scroll-pane {

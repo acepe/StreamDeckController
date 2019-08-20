@@ -48,4 +48,14 @@ public class DummyDeck implements IStreamDeck {
     public void removeKeyListener(KeyListener listener) {
 
     }
+
+    @Override
+    public String getDeviceName() {
+        return null;
+    }
+
+    @Override
+    public String getDeviceId() {
+        return null;
+    }
 }
