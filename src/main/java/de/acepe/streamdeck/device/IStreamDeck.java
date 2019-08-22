@@ -64,4 +64,8 @@ public interface IStreamDeck {
     String getDeviceName();
 
     String getDeviceId();
+
+    String getSerialnumber();
+
+    void open();
 }

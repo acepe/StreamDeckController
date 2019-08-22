@@ -58,4 +58,14 @@ public class DummyDeck implements IStreamDeck {
     public String getDeviceId() {
         return null;
     }
+
+    @Override
+    public String getSerialnumber() {
+        return "-1";
+    }
+
+    @Override
+    public void open() {
+
+    }
 }

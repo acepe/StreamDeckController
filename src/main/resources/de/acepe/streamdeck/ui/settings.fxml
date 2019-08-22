@@ -1,53 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import java.lang.String?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
-
-<ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" styleClass="bordered" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.streamdeck.ui.SettingsController">
+<ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+            minHeight="-Infinity" minWidth="-Infinity" styleClass="bordered" xmlns="http://javafx.com/javafx/11.0.1"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.streamdeck.ui.SettingsController">
     <VBox styleClass="spaced">
         <HBox styleClass="content-pane">
             <Button fx:id="backButton" mnemonicParsing="false" onAction="#onSaveSettingsPerformed">
                 <styleClass>
-                    <String fx:value="back-button" />
-                    <String fx:value="square-button" />
+                    <String fx:value="back-button"/>
+                    <String fx:value="square-button"/>
                 </styleClass>
             </Button>
             <Label maxHeight="1.7976931348623157E308" text="Einstellungen">
                 <styleClass>
-                    <String fx:value="settings-title" />
+                    <String fx:value="settings-title"/>
                 </styleClass>
             </Label>
         </HBox>
         <BorderPane styleClass="content-pane" VBox.vgrow="ALWAYS">
-         <center>
-            <GridPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="grid" BorderPane.alignment="TOP_LEFT">
-               <columnConstraints>
-                  <ColumnConstraints hgrow="SOMETIMES" minWidth="-Infinity" />
-                  <ColumnConstraints hgrow="SOMETIMES" minWidth="-Infinity" />
-                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="-Infinity" />
-               </columnConstraints>
-               <rowConstraints>
-                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-               </rowConstraints>
-               <children>
-                      <Button fx:id="discoverButton" mnemonicParsing="false" onAction="#onDiscoverPerformed" text="Discover Device" GridPane.columnIndex="2" />
-                  <Label text="Connected Device" />
-                  <TextField fx:id="deviceName" editable="false" GridPane.columnIndex="1" />
-                  <TextField fx:id="deviceId" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                  <Label text="Device-Id" GridPane.rowIndex="1" />
-               </children>
-            </GridPane>
-         </center>
+            <center>
+                <GridPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="grid" BorderPane.alignment="TOP_LEFT">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="-Infinity"/>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="-Infinity"/>
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="-Infinity"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                    </rowConstraints>
+                    <Label text="Connected Device"/>
+                    <TextField fx:id="deviceName" editable="false" GridPane.columnIndex="1"/>
+                    <TextField fx:id="serialNumber" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                    <Label text="Serial-Number" GridPane.rowIndex="1"/>
+                </GridPane>
+            </center>
         </BorderPane>
     </VBox>
 </ScrollPane>

@@ -1,5 +1,6 @@
 package de.acepe.streamdeck.backend.behaviours;
 
+import de.acepe.streamdeck.backend.DeckManager;
 import de.acepe.streamdeck.device.IStreamDeck;
 import de.acepe.streamdeck.device.event.KeyEvent;
 
@@ -7,11 +8,11 @@ import javax.inject.Inject;
 
 public class StreamDeckToggleBrightnessBehavior extends BasicButtonBehaviour {
 
-    private final IStreamDeck deck;
+    private final DeckManager deckManager;
 
     @Inject
-    public StreamDeckToggleBrightnessBehavior(IStreamDeck deck) {
-        this.deck = deck;
+    public StreamDeckToggleBrightnessBehavior(DeckManager deckManager) {
+        this.deckManager = deckManager;
     }
 
     @Override
@@ -20,6 +21,7 @@ public class StreamDeckToggleBrightnessBehavior extends BasicButtonBehaviour {
 
     @Override
     public void onButtonReleased(KeyEvent event) {
+        IStreamDeck deck = deckManager.getDeck();
         int brightness = deck.getBrightness();
         if (brightness >= 99) {
             brightness = 0;

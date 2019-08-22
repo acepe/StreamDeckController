@@ -3,8 +3,8 @@ package de.acepe.streamdeck.ui;
 import de.acepe.streamdeck.app.ControlledScreen;
 import de.acepe.streamdeck.app.ScreenManager;
 import de.acepe.streamdeck.app.Screens;
-import de.acepe.streamdeck.backend.DeckManager;
-import de.acepe.streamdeck.device.StreamDeck;
+import de.acepe.streamdeck.device.IStreamDeck;
+import de.acepe.streamdeck.device.StreamDeckDevices;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.fxml.FXML;
@@ -16,34 +16,31 @@ import javax.inject.Inject;
 public class SettingsController implements ControlledScreen {
 
     private final ScreenManager screenManager;
-    private final StreamDeck streamDeck;
-    private final DeckManager deckManager;
+    private final StreamDeckDevices streamDeckDevices;
 
     @FXML
     private TextField deviceName;
     @FXML
-    private TextField deviceId;
+    private TextField serialNumber;
     @FXML
     private Button backButton;
-    @FXML
-    private Button discoverButton;
 
     @Inject
-    public SettingsController(ScreenManager screenManager, StreamDeck streamDeck, DeckManager deckManager) {
+    public SettingsController(ScreenManager screenManager, StreamDeckDevices streamDeckDevices) {
         this.screenManager = screenManager;
-        this.streamDeck = streamDeck;
-        this.deckManager = deckManager;
+        this.streamDeckDevices = streamDeckDevices;
     }
 
     @FXML
     private void initialize() {
         GlyphsDude.setIcon(backButton, FontAwesomeIcon.CHEVRON_LEFT, "1.5em");
-        setDeviceInfos();
+        streamDeckDevices.registerDecksDiscoveredCallback(this::setDeviceInfos);
+        setDeviceInfos(streamDeckDevices.getStreamDeck());
     }
 
-    private void setDeviceInfos() {
-        deviceName.setText(streamDeck.getDeviceName());
-        deviceId.setText(streamDeck.getDeviceId());
+    private void setDeviceInfos(IStreamDeck deck) {
+        deviceName.setText(deck.getDeviceName());
+        serialNumber.setText(deck.getSerialnumber());
     }
 
     @FXML
@@ -51,10 +48,4 @@ public class SettingsController implements ControlledScreen {
         screenManager.setScreen(Screens.MAIN, ScreenManager.Direction.RIGHT);
     }
 
-    @FXML
-    private void onDiscoverPerformed() {
-        streamDeck.reconnect();
-        deckManager.setCurrentPage(deckManager.getCurrentPage().getId());
-        setDeviceInfos();
-    }
 }

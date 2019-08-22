@@ -16,7 +16,6 @@ import javafx.scene.image.ImageView;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.util.ArrayList;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static java.awt.event.KeyEvent.*;
@@ -64,7 +63,8 @@ public class MainViewController implements ControlledScreen {
     private Button settingsButton;
 
     @Inject
-    public MainViewController(ScreenManager screenManager, DeckManager deckManager,
+    public MainViewController(ScreenManager screenManager,
+                              DeckManager deckManager,
                               Provider<StreamDeckToggleBrightnessBehavior> toggleBrightness,
                               Provider<HotKeyBehaviour> hotkey,
                               Provider<ShowPageBehaviour> showPage,
@@ -73,13 +73,10 @@ public class MainViewController implements ControlledScreen {
                               Provider<SleepBehaviour> sleepBehaviour) {
         this.screenManager = screenManager;
         this.deckManager = deckManager;
-        deckManager.bindUICallback(this::updateButtonUI);
+        deckManager.bindUpdateUICallback(this::updateButtonUI);
 
         page1 = new Page("Page 1");
-        page1.setId(UUID.randomUUID());
-
         page2 = new Page("Page 2");
-        page2.setId(UUID.randomUUID());
 
         configurePage1(toggleBrightness, hotkey, executeProgramm, openLocation, sleepBehaviour, showPage);
         configurePage2(showPage);
@@ -200,8 +197,7 @@ public class MainViewController implements ControlledScreen {
 
     private void updateButtonUI(int index) {
         Button button = buttons.get(index);
-        DeckButton deckButton = deckManager.getCurrentPage().getButton(index);
-        ((ImageView) button.getGraphic()).setImage(deckButton.getImage());
+        ((ImageView) button.getGraphic()).setImage(deckManager.getButtonImage(index));
     }
 
     @FXML

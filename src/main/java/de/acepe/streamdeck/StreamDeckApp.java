@@ -6,6 +6,7 @@ import de.acepe.streamdeck.app.AppModule;
 import de.acepe.streamdeck.app.ScreenManager;
 import de.acepe.streamdeck.app.Screens;
 import de.acepe.streamdeck.backend.DeckManager;
+import de.acepe.streamdeck.device.StreamDeckDevices;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -23,6 +24,8 @@ public class StreamDeckApp extends Application {
     private ScreenManager screenManager;
     @Inject
     private DeckManager deckManager;
+    @Inject
+    private StreamDeckDevices streamDeckDevices;
 
     private Injector injector;
 
@@ -56,8 +59,8 @@ public class StreamDeckApp extends Application {
 
     @Override
     public void stop() throws Exception {
-        super.stop();
-        deckManager.stop();
+        LOG.info("Shutting down");
+        streamDeckDevices.stop();
     }
 
     public static void main(String[] args) {

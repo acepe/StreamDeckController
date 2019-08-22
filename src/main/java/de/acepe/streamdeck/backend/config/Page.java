@@ -1,28 +1,26 @@
 package de.acepe.streamdeck.backend.config;
 
 import de.acepe.streamdeck.backend.DeckButton;
+import de.acepe.streamdeck.backend.DeckManager;
 import de.acepe.streamdeck.device.IStreamDeck;
 import de.acepe.streamdeck.device.event.KeyEvent;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 
 import static de.acepe.streamdeck.device.event.KeyEvent.Type.RELEASED;
+import static java.util.UUID.randomUUID;
 
 public class Page {
-
     private final List<DeckButton> buttons = new ArrayList<>(15);
 
-    private UUID id;
+    private UUID id = randomUUID();
     private String title;
 
-    private Consumer<Integer> updateCallback;
-    private IStreamDeck deck;
+    private DeckManager deckManager;
 
     public Page(String title) {
         this.title = title;
@@ -67,10 +65,8 @@ public class Page {
     }
 
     public void updateButton(int index) {
-        deck.setKeyBitmap(index, buttons.get(index).getImageRaw());
-        if (updateCallback != null) {
-            updateCallback.accept(index);
-        }
+        deckManager.getDeck().setKeyBitmap(index, buttons.get(index).getImageRaw());
+        deckManager.updateButtonUi(index);
     }
 
     public void fireActionFromUI(int index, IStreamDeck deck) {
@@ -82,18 +78,15 @@ public class Page {
     }
 
     public void unbindDeckManager() {
-        deck = null;
-        updateCallback = null;
-
+        deckManager = null;
     }
 
     private void forAllButtonsDo(IntConsumer callable) {
         IntStream.rangeClosed(0, 14).filter(i -> getButton(i) != null).forEach(callable);
     }
 
-    public void bindDeckManager(IStreamDeck deck, Consumer<Integer> updateCallback) {
-        this.deck = deck;
-        this.updateCallback = updateCallback;
+    public void bindDeckManager(DeckManager deckManager) {
+        this.deckManager = deckManager;
     }
 
     public UUID getId() {

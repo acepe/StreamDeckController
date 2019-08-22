@@ -6,9 +6,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 import de.acepe.streamdeck.backend.DeckManager;
-import de.acepe.streamdeck.device.IStreamDeck;
 import de.acepe.streamdeck.device.StreamDeckDevices;
-import de.acepe.streamdeck.device.StreamDeck;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 
@@ -33,12 +31,9 @@ public class AppModule extends AbstractModule {
 
         bind(ScreenManager.class).in(Singleton.class);
         bind(StreamDeckDevices.class).in(Singleton.class);
-        bind(IStreamDeck.class).to(StreamDeck.class).in(Singleton.class);
-        bind(StreamDeck.class).in(Singleton.class);
+        bind(DeckManager.class).in(Singleton.class);
 
         bind(Robot.class).in(Singleton.class);
-
-        bind(DeckManager.class).in(Singleton.class);
 
 //        FactoryModuleBuilder builder = new FactoryModuleBuilder();
 //        install(builder.build(OnDemandStreamFactory.class));

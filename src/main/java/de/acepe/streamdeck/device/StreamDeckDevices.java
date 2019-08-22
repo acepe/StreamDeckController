@@ -8,7 +8,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
+
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * <br><br>
@@ -44,19 +51,35 @@ public final class StreamDeckDevices {
     private static final Integer VENDOR_ID = 0x0FD9;
     private static final Integer PRODUCT_ID = 0x0060;
 
-    private final List<IStreamDeck> streamDecks = new ArrayList<>(0);
+    private final List<Consumer<IStreamDeck>> onDeckDiscoveredCallbacks = new LinkedList<>();
+    private final ScheduledExecutorService watchdogThreadPool;
+
+    private IStreamDeck streamDeck = new DummyDeck();
 
     @Inject
     private StreamDeckDevices() {
-        discoverDevices();
+        watchdogThreadPool = newScheduledThreadPool(0, r -> new Thread(r, "ESD-Watchdog-Thread"));
+        watchdogThreadPool.scheduleAtFixedRate(this::discoverAndConnectDevices, 0, 1, SECONDS);
     }
 
-    public void discoverDevices() {
-        streamDecks.clear();
-        streamDecks.addAll(getAllStreamDecks());
+    private void discoverAndConnectDevices() {
+        try {
+
+        IStreamDeck foundDeck = discoverConnectedStreamDeck();
+        if (!Objects.equals(foundDeck, streamDeck)) {
+            if (streamDeck != null) {
+                streamDeck.dispose();
+            }
+            streamDeck = foundDeck;
+            streamDeck.open();
+            onDeckDiscoveredCallbacks.forEach(onDeckDiscoveredCallback -> onDeckDiscoveredCallback.accept(streamDeck));
+        }
+        }catch (Exception e){
+            LOG.error("Caught Exception in Watchdog-Thread", e);
+        }
     }
 
-    private ArrayList<IStreamDeck> getAllStreamDecks() {
+    private IStreamDeck discoverConnectedStreamDeck() {
         LOG.info("Scanning for devices");
 
         HidServices hidServices = HidManager.getHidServices();
@@ -66,35 +89,39 @@ public final class StreamDeckDevices {
         for (HidDevice device : hidServices.getAttachedHidDevices()) {
             LOG.debug("Vendor-ID: " + device.getVendorId() + ", Product-ID: " + device.getProductId());
             if (device.getVendorId() == VENDOR_ID && device.getProductId() == PRODUCT_ID) {
-                LOG.info("  Manufacurer: " + device.getManufacturer());
-                LOG.info("  Product:     " + device.getProduct());
-                LOG.info("  Device-Id:   " + device.getId());
-                LOG.info("  Serial-No:   " + device.getSerialNumber());
-                LOG.info("  Path:        " + device.getPath());
-                LOG.info("");
+                LOG.debug("  Manufacurer: " + device.getManufacturer());
+                LOG.debug("  Product:     " + device.getProduct());
+                LOG.debug("  Device-Id:   " + device.getId());
+                LOG.debug("  Serial-No:   " + device.getSerialNumber());
+                LOG.debug("  Path:        " + device.getPath());
+                LOG.debug("");
                 ret.add(new ClassicStreamDeck(device));
             }
         }
         if (ret.isEmpty()) {
             LOG.info("No Stream Deck found…");
+            return new DummyDeck();
         }
-        return ret;
+        //for now we only support one Deck, so we use the first we found
+        IStreamDeck deck = ret.get(0);
+        LOG.info("Found Stream Deck with Serial-No: " + deck.getSerialnumber());
+        return deck;
     }
 
     public IStreamDeck getStreamDeck() {
-        return getStreamDeck(0);
+        return streamDeck;
     }
 
-    public IStreamDeck getStreamDeck(int id) {
-        if (id < 0 || id >= getStreamDeckSize()) {
-            return null;
+    public void stop() {
+        watchdogThreadPool.shutdown();
+        if (streamDeck != null) {
+            streamDeck.setLogo();
+            streamDeck.dispose();
         }
-        return streamDecks.get(id);
     }
 
-    public int getStreamDeckSize() {
-        return streamDecks.size();
+    public void registerDecksDiscoveredCallback(Consumer<IStreamDeck> onDeckDiscoveredCallback) {
+        onDeckDiscoveredCallbacks.add(onDeckDiscoveredCallback);
     }
-
 }
  

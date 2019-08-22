@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -48,6 +49,9 @@ public class ClassicStreamDeck implements IStreamDeck {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     private final Object disposeLock = new Object();
+    private final String serialNumber;
+    private final String id;
+    private final String product;
 
     /**
      * Brightness command for this instance.
@@ -88,6 +92,12 @@ public class ClassicStreamDeck implements IStreamDeck {
         commandDispatcher = Executors.newFixedThreadPool(1, r -> new Thread(r, "ESD-Command-Dispatch-Thread"));
         eventDispatcher = Executors.newFixedThreadPool(1, r -> new Thread(r, "ESD-Event-Dispatch-Thread"));
 
+        serialNumber = hidDevice.getSerialNumber();
+        id = hidDevice.getId();
+        product = hidDevice.getProduct();
+    }
+
+    public void open() {
         if (!hidDevice.isOpen()) {
             hidDevice.open();
         }
@@ -148,6 +158,7 @@ public class ClassicStreamDeck implements IStreamDeck {
      */
     @Override
     public void dispose() {
+        LOG.info("Shutting down Stream Deck");
         synchronized (disposeLock) {
             if (disposed) {
                 return;
@@ -158,8 +169,6 @@ public class ClassicStreamDeck implements IStreamDeck {
         if (hidDevice == null) {
             return;
         }
-        reset();
-
         stopKeyListenerThread();
         commandDispatcher.shutdownNow();
         eventDispatcher.shutdownNow();
@@ -210,6 +219,10 @@ public class ClassicStreamDeck implements IStreamDeck {
     private void keyListener() {
         synchronized (keyListeners) {
             while (isListening) {
+                if (Thread.currentThread().isInterrupted()) {
+                    break;
+                }
+
                 byte[] data = new byte[16];
                 hidDevice.read(data, 1000);
 
@@ -245,6 +258,9 @@ public class ClassicStreamDeck implements IStreamDeck {
 
     private void stopKeyListenerThread() {
         isListening = false;
+        if (keyListenTask != null) {
+            keyListenTask.interrupt();
+        }
         keyListenTask = null;
     }
 
@@ -309,11 +325,33 @@ public class ClassicStreamDeck implements IStreamDeck {
     }
 
     public String getDeviceName() {
-        return hidDevice.getProduct();
+        return product;
     }
 
     public String getDeviceId() {
-        return hidDevice.getId();
+        return id;
     }
 
+    public String getSerialnumber() {
+        return serialNumber;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ClassicStreamDeck that = (ClassicStreamDeck) o;
+        return Objects.equals(serialNumber, that.serialNumber) &&
+                Objects.equals(id, that.id) &&
+                Objects.equals(product, that.product);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(serialNumber, id, product);
+    }
 }
