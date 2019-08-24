@@ -65,22 +65,23 @@ public final class StreamDeckDevices {
     private void discoverAndConnectDevices() {
         try {
 
-        IStreamDeck foundDeck = discoverConnectedStreamDeck();
-        if (!Objects.equals(foundDeck, streamDeck)) {
-            if (streamDeck != null) {
-                streamDeck.dispose();
+            IStreamDeck foundDeck = discoverConnectedStreamDeck();
+            if (!Objects.equals(foundDeck, streamDeck)) {
+                if (streamDeck != null) {
+                    streamDeck.dispose();
+                }
+                streamDeck = foundDeck;
+                streamDeck.open();
+                onDeckDiscoveredCallbacks
+                        .forEach(onDeckDiscoveredCallback -> onDeckDiscoveredCallback.accept(streamDeck));
             }
-            streamDeck = foundDeck;
-            streamDeck.open();
-            onDeckDiscoveredCallbacks.forEach(onDeckDiscoveredCallback -> onDeckDiscoveredCallback.accept(streamDeck));
-        }
-        }catch (Exception e){
+        } catch (Exception e) {
             LOG.error("Caught Exception in Watchdog-Thread", e);
         }
     }
 
     private IStreamDeck discoverConnectedStreamDeck() {
-        LOG.info("Scanning for devices");
+        LOG.debug("Scanning for devices");
 
         HidServices hidServices = HidManager.getHidServices();
         hidServices.start();
@@ -99,12 +100,12 @@ public final class StreamDeckDevices {
             }
         }
         if (ret.isEmpty()) {
-            LOG.info("No Stream Deck found…");
+            LOG.debug("No Stream Deck found…");
             return new DummyDeck();
         }
         //for now we only support one Deck, so we use the first we found
         IStreamDeck deck = ret.get(0);
-        LOG.info("Found Stream Deck with Serial-No: " + deck.getSerialnumber());
+        LOG.debug("Found Stream Deck with Serial-No: " + deck.getSerialnumber());
         return deck;
     }
 

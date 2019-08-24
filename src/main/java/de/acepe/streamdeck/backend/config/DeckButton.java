@@ -1,5 +1,8 @@
-package de.acepe.streamdeck.backend;
+package de.acepe.streamdeck.backend.config;
 
+import com.google.gson.annotations.Expose;
+import de.acepe.streamdeck.backend.config.behaviours.ButtonBehaviour;
+import de.acepe.streamdeck.backend.DeckManager;
 import de.acepe.streamdeck.device.event.KeyEvent;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
@@ -13,13 +16,15 @@ import static de.acepe.streamdeck.util.IconHelper.convertImage;
 import static de.acepe.streamdeck.util.IconHelper.imageFromText;
 
 public class DeckButton {
-
+    @Expose
     private final List<ButtonBehaviour> behaviours = new ArrayList<>(0);
-
-    private byte[] imageRaw;
-    private Image image;
+    @Expose
     private String text;
+    @Expose
     private int index;
+    private byte[] imageRaw;
+    @Expose
+    private Image image;
 
     public DeckButton() {
     }
@@ -38,7 +43,11 @@ public class DeckButton {
 
     public void setImage(Image image) {
         this.image = image;
-        imageRaw = convertImage(image);
+        if (image != null) {
+            imageRaw = convertImage(image);
+        }else{
+            imageRaw=null;
+        }
     }
 
     public String getText() {
@@ -91,5 +100,13 @@ public class DeckButton {
 
     public int getIndex() {
         return index;
+    }
+
+    public void bindDeckManager(DeckManager deckManager) {
+        behaviours.forEach(b -> b.bindDeckManager(deckManager));
+    }
+
+    public void unbindDeckManager() {
+        behaviours.forEach(ButtonBehaviour::unbindDeckManager);
     }
 }

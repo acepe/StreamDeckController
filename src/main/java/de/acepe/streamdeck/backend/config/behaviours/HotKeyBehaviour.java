@@ -1,21 +1,23 @@
-package de.acepe.streamdeck.backend.behaviours;
+package de.acepe.streamdeck.backend.config.behaviours;
 
+import com.google.gson.annotations.Expose;
 import de.acepe.streamdeck.device.event.KeyEvent;
 
-import javax.inject.Inject;
 import java.awt.*;
 
 public class HotKeyBehaviour extends BasicButtonBehaviour {
 
     private final Robot robot;
 
+    @Expose
     private Integer keycode;
+    @Expose
     private Integer modifier1;
+    @Expose
     private Integer modifier2;
 
-    @Inject
-    public HotKeyBehaviour(Robot robot) {
-        this.robot = robot;
+    public HotKeyBehaviour() throws AWTException {
+        this.robot = new Robot();
     }
 
     public void setKey(Integer keycode) {

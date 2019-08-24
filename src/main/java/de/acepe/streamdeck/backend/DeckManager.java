@@ -1,6 +1,8 @@
 package de.acepe.streamdeck.backend;
 
+import de.acepe.streamdeck.backend.config.DeckButton;
 import de.acepe.streamdeck.backend.config.Page;
+import de.acepe.streamdeck.backend.config.Persistence;
 import de.acepe.streamdeck.device.IStreamDeck;
 import de.acepe.streamdeck.device.StreamDeckDevices;
 import de.acepe.streamdeck.device.event.KeyEvent;
@@ -8,7 +10,6 @@ import javafx.scene.image.Image;
 
 import javax.inject.Inject;
 import java.util.HashMap;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import static de.acepe.streamdeck.device.event.KeyEvent.Type.PRESSED;
@@ -16,19 +17,24 @@ import static de.acepe.streamdeck.device.event.KeyEvent.Type.RELEASED;
 
 public class DeckManager {
 
-    private static final Page EMPTY_PAGE = new Page("empty");
-    private final HashMap<UUID, Page> pages = new HashMap<>();
+    private final HashMap<String, Page> pages = new HashMap<>();
     private final StreamDeckDevices streamDeckDevices;
+    private final Persistence persistence;
 
     private Consumer<Integer> uiCallback;
     private Page currentPage;
 
     @Inject
-    DeckManager(StreamDeckDevices streamDeckDevices) {
+    DeckManager(StreamDeckDevices streamDeckDevices, Persistence persistence) {
         this.streamDeckDevices = streamDeckDevices;
-        registerPage(EMPTY_PAGE);
-        setCurrentPage(EMPTY_PAGE.getId());
+        this.persistence = persistence;
+
+        Page page = persistence.getEmptyPage();
+        registerPage(page);
+        setCurrentPage(page.getId());
+
         streamDeckDevices.registerDecksDiscoveredCallback(this::onStreamdeckConnected);
+        onStreamdeckConnected(streamDeckDevices.getStreamDeck());
     }
 
     private void onStreamdeckConnected(IStreamDeck deck) {
@@ -51,7 +57,7 @@ public class DeckManager {
         pages.put(page.getId(), page);
     }
 
-    public void setCurrentPage(UUID pageId) {
+    public void setCurrentPage(String pageId) {
         if (currentPage != null) {
             currentPage.unbindDeckManager();
         }
@@ -92,5 +98,11 @@ public class DeckManager {
 
     public Image getButtonImage(int buttonIndex) {
         return getCurrentPage().getButton(buttonIndex).getImage();
+    }
+
+    public Page loadPage(String uuid) {
+        Page page = persistence.loadPage(uuid);
+        registerPage(page);
+        return page;
     }
 }

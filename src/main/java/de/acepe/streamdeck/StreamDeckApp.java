@@ -5,7 +5,6 @@ import com.google.inject.Injector;
 import de.acepe.streamdeck.app.AppModule;
 import de.acepe.streamdeck.app.ScreenManager;
 import de.acepe.streamdeck.app.Screens;
-import de.acepe.streamdeck.backend.DeckManager;
 import de.acepe.streamdeck.device.StreamDeckDevices;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -22,8 +21,6 @@ public class StreamDeckApp extends Application {
 
     @Inject
     private ScreenManager screenManager;
-    @Inject
-    private DeckManager deckManager;
     @Inject
     private StreamDeckDevices streamDeckDevices;
 

@@ -1,13 +1,12 @@
 package de.acepe.streamdeck.backend.config;
 
-import de.acepe.streamdeck.backend.DeckButton;
+import com.google.gson.annotations.Expose;
 import de.acepe.streamdeck.backend.DeckManager;
 import de.acepe.streamdeck.device.IStreamDeck;
 import de.acepe.streamdeck.device.event.KeyEvent;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 
@@ -15,9 +14,12 @@ import static de.acepe.streamdeck.device.event.KeyEvent.Type.RELEASED;
 import static java.util.UUID.randomUUID;
 
 public class Page {
+    @Expose
     private final List<DeckButton> buttons = new ArrayList<>(15);
 
-    private UUID id = randomUUID();
+    @Expose
+    private String id = randomUUID().toString();
+    @Expose
     private String title;
 
     private DeckManager deckManager;
@@ -64,6 +66,15 @@ public class Page {
         forAllButtonsDo(this::updateButton);
     }
 
+    public void syncButtonImages() {
+        forAllButtonsDo(this::syncButtonImage);
+    }
+
+    private void syncButtonImage(int index) {
+        DeckButton deckButton = buttons.get(index);
+        deckButton.setImage(deckButton.getImage());
+    }
+
     public void updateButton(int index) {
         deckManager.getDeck().setKeyBitmap(index, buttons.get(index).getImageRaw());
         deckManager.updateButtonUi(index);
@@ -77,23 +88,25 @@ public class Page {
         deckButton.onButtonReleased(new KeyEvent(deck, index, RELEASED));
     }
 
-    public void unbindDeckManager() {
-        deckManager = null;
-    }
-
     private void forAllButtonsDo(IntConsumer callable) {
         IntStream.rangeClosed(0, 14).filter(i -> getButton(i) != null).forEach(callable);
     }
 
     public void bindDeckManager(DeckManager deckManager) {
         this.deckManager = deckManager;
+        IntStream.rangeClosed(0, 14).mapToObj(buttons::get).forEach(b -> b.bindDeckManager(deckManager));
     }
 
-    public UUID getId() {
+    public void unbindDeckManager() {
+        deckManager = null;
+        IntStream.rangeClosed(0, 14).mapToObj(buttons::get).forEach(DeckButton::unbindDeckManager);
+    }
+
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 }

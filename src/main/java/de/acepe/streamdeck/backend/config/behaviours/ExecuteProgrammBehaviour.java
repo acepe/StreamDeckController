@@ -1,5 +1,6 @@
-package de.acepe.streamdeck.backend.behaviours;
+package de.acepe.streamdeck.backend.config.behaviours;
 
+import com.google.gson.annotations.Expose;
 import de.acepe.streamdeck.device.event.KeyEvent;
 
 import java.io.IOException;
@@ -9,7 +10,9 @@ import java.util.List;
 
 public class ExecuteProgrammBehaviour extends BasicButtonBehaviour {
 
+    @Expose
     private String pathToProgramm;
+    @Expose
     private String[] args = new String[0];
 
     public void setProgramm(String pathToProgramm) {

@@ -1,5 +1,6 @@
-package de.acepe.streamdeck.backend.behaviours;
+package de.acepe.streamdeck.backend.config.behaviours;
 
+import com.google.gson.annotations.Expose;
 import de.acepe.streamdeck.device.event.KeyEvent;
 import de.acepe.streamdeck.util.FileUtil;
 import org.slf4j.Logger;
@@ -12,7 +13,9 @@ import java.net.URISyntaxException;
 public class OpenLocationBehaviour extends BasicButtonBehaviour {
     private static final Logger LOG = LoggerFactory.getLogger(OpenLocationBehaviour.class);
 
+    @Expose
     private URI uri;
+    @Expose
     private File file;
 
     public void setUri(URI uri) {

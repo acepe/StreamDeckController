@@ -1,5 +1,6 @@
-package de.acepe.streamdeck.backend.behaviours;
+package de.acepe.streamdeck.backend.config.behaviours;
 
+import com.google.gson.annotations.Expose;
 import de.acepe.streamdeck.device.event.KeyEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +8,7 @@ import org.slf4j.LoggerFactory;
 public class SleepBehaviour extends BasicButtonBehaviour {
     private static final Logger LOG = LoggerFactory.getLogger(SleepBehaviour.class);
 
+    @Expose
     private long millis;
 
     public void setDurationInMillis(long millis) {
