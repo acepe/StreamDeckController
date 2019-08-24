@@ -29,6 +29,7 @@ public class Persistence {
     private static final Page EMPTY_PAGE = new Page("empty");
     private static final String APP_DIR = "deck";
     private static final String PROFILES_DIR = "profiles";
+    private static final String SETTINGS_FILE = "settings.json";
 
     private final RuntimeTypeAdapterFactory<ButtonBehaviour> typeFactory = RuntimeTypeAdapterFactory
             .of(ButtonBehaviour.class, "type")
@@ -44,6 +45,10 @@ public class Persistence {
                                                .registerTypeAdapterFactory(typeFactory)
                                                .registerTypeAdapter(Image.class, new ImageAdapter())
                                                .create();
+
+    public Persistence() {
+        createAppDir();
+    }
 
     public Profile createDefaultProfile() {
         Profile defaultProfile = new Profile();
@@ -86,7 +91,6 @@ public class Persistence {
 
     public void saveProfile(Profile profile) {
         String pageJson = gson.toJson(profile);
-        createAppDir();
 
         Path pageFile = getProfileFile(profile.getName());
         try (Writer writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()), UTF_8)) {
@@ -95,6 +99,37 @@ public class Persistence {
         } catch (Exception e) {
             LOG.error("Couldn't write page to file {}", pageFile);
         }
+    }
+
+    public void saveSettings(Settings settings) {
+        String settingsJson = gson.toJson(settings);
+
+        Path settingsFile = getSettingsFile();
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(settingsFile.toFile()), UTF_8)) {
+            LOG.info("Writing settings to file {}", settingsFile);
+            writer.write(settingsJson);
+        } catch (Exception e) {
+            LOG.error("Couldn't write settings to file {}", settingsFile);
+        }
+    }
+
+    public Settings loadSettings() {
+        File file = getSettingsFile().toFile();
+        if (!file.exists()) {
+            LOG.error("Settings file {} does not exist", file);
+            return new Settings();
+        }
+
+        try (Reader jsonReader = new InputStreamReader(new FileInputStream(file), UTF_8)) {
+            return gson.fromJson(jsonReader, Settings.class);
+        } catch (IOException | JsonSyntaxException | JsonIOException e) {
+            LOG.error("Couldn't read page file: {}", file, e);
+            return new Settings();
+        }
+    }
+
+    private Path getSettingsFile() {
+        return getAppDir().resolve(SETTINGS_FILE);
     }
 
     private Path getProfileFile(String profileName) {

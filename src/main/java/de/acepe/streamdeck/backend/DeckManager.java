@@ -1,9 +1,6 @@
 package de.acepe.streamdeck.backend;
 
-import de.acepe.streamdeck.backend.config.DeckButton;
-import de.acepe.streamdeck.backend.config.Page;
-import de.acepe.streamdeck.backend.config.Persistence;
-import de.acepe.streamdeck.backend.config.Profile;
+import de.acepe.streamdeck.backend.config.*;
 import de.acepe.streamdeck.device.IStreamDeck;
 import de.acepe.streamdeck.device.StreamDeckDevices;
 import de.acepe.streamdeck.device.event.KeyEvent;
@@ -28,6 +25,7 @@ public class DeckManager {
 
     private final StreamDeckDevices streamDeckDevices;
     private final Persistence persistence;
+    private final Settings settings;
 
     private Consumer<Integer> uiCallback;
     private Profile currentProfile;
@@ -40,9 +38,10 @@ public class DeckManager {
 
 //        Profile defaultProfile = persistence.createDefaultProfile();
 //        addProfile(defaultProfile);
-
+        settings = persistence.loadSettings();
         persistence.loadAllProfiles().forEach(this::addProfile);
-        setCurrentProfile(profiles.get(0));
+
+        setCurrentProfile(settings.getCurrentProfile());
 
         streamDeckDevices.registerDecksDiscoveredCallback(this::onStreamdeckConnected);
         onStreamdeckConnected(streamDeckDevices.getStreamDeck());
@@ -84,9 +83,19 @@ public class DeckManager {
         pages.put(page.getId(), page);
     }
 
+    public void setCurrentProfile(String profileName) {
+        Profile profile = profiles.stream()
+                                  .filter(p -> p.getName().equals(profileName)).findFirst()
+                                  .orElse(profiles.get(0));
+        setCurrentProfile(profile);
+    }
+
     public void setCurrentProfile(Profile profile) {
         currentProfile = profile;
         setCurrentPage(profile.getStartPage());
+
+        settings.setCurrentProfile(profile.getName());
+        persistence.saveSettings(settings);
     }
 
     public Profile getCurrentProfile() {
