@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 
 import static java.awt.event.KeyEvent.*;
 
-public class ExamplePageFactory {
+public class ExampleProfileFactory {
     public static final String PAGE_1_ID = "65f069ef-fd1e-4897-acbd-b610d29ab1cc";
     public static final String PAGE_2_ID = "0bcd4517-5036-4d64-965d-ebc8d1c7f605";
 
@@ -22,13 +22,13 @@ public class ExamplePageFactory {
     private final Provider<SleepBehaviour> sleepBehaviour;
 
     @Inject
-    public ExamplePageFactory(DeckManager deckManager,
-                              Provider<StreamDeckToggleBrightnessBehavior> toggleBrightness,
-                              Provider<HotKeyBehaviour> hotkey,
-                              Provider<ShowPageBehaviour> showPage,
-                              Provider<ExecuteProgrammBehaviour> executeProgramm,
-                              Provider<OpenLocationBehaviour> openLocation,
-                              Provider<SleepBehaviour> sleepBehaviour) {
+    public ExampleProfileFactory(DeckManager deckManager,
+                                 Provider<StreamDeckToggleBrightnessBehavior> toggleBrightness,
+                                 Provider<HotKeyBehaviour> hotkey,
+                                 Provider<ShowPageBehaviour> showPage,
+                                 Provider<ExecuteProgrammBehaviour> executeProgramm,
+                                 Provider<OpenLocationBehaviour> openLocation,
+                                 Provider<SleepBehaviour> sleepBehaviour) {
         this.deckManager = deckManager;
         this.toggleBrightness = toggleBrightness;
         this.hotkey = hotkey;
@@ -38,7 +38,15 @@ public class ExamplePageFactory {
         this.sleepBehaviour = sleepBehaviour;
     }
 
-    public Page configurePage2() {
+    public Profile createProfile1() {
+        Profile profile = new Profile();
+        profile.setName("Profile 1");
+        profile.addPage(configurePage1());
+        profile.addPage(configurePage2());
+        return profile;
+    }
+
+    private Page configurePage2() {
         Page page = new Page("Page 2");
         page.setId(PAGE_2_ID);
         deckManager.registerPage(page);
@@ -53,7 +61,7 @@ public class ExamplePageFactory {
         return page;
     }
 
-    public Page configurePage1() {
+    private Page configurePage1() {
         Page page = new Page("Page 1");
         page.setId(PAGE_1_ID);
         deckManager.registerPage(page);

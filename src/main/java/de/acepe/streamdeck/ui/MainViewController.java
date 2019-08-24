@@ -4,23 +4,25 @@ import de.acepe.streamdeck.app.ControlledScreen;
 import de.acepe.streamdeck.app.ScreenManager;
 import de.acepe.streamdeck.app.Screens;
 import de.acepe.streamdeck.backend.DeckManager;
-import de.acepe.streamdeck.backend.config.ExamplePageFactory;
-import de.acepe.streamdeck.backend.config.Persistence;
+import de.acepe.streamdeck.backend.config.ExampleProfileFactory;
+import de.acepe.streamdeck.backend.config.Profile;
+import de.acepe.streamdeck.util.OneWayStringConverter;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.image.ImageView;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 
-import static de.acepe.streamdeck.backend.config.ExamplePageFactory.PAGE_1_ID;
-import static de.acepe.streamdeck.backend.config.ExamplePageFactory.PAGE_2_ID;
-
 public class MainViewController implements ControlledScreen {
 
+    private final ObservableList<Profile> profilesList = FXCollections.observableArrayList();
     private final ArrayList<Button> buttons = new ArrayList<>(15);
     private final ScreenManager screenManager;
     private final DeckManager deckManager;
@@ -55,6 +57,8 @@ public class MainViewController implements ControlledScreen {
     private Button button13;
     @FXML
     private Button button14;
+    @FXML
+    private ComboBox<Profile> profilesComboBox;
 
     @FXML
     private Button settingsButton;
@@ -62,14 +66,12 @@ public class MainViewController implements ControlledScreen {
     @Inject
     public MainViewController(ScreenManager screenManager,
                               DeckManager deckManager,
-                              ExamplePageFactory examplePageFactory,
-                              Persistence persistence) {
+                              ExampleProfileFactory exampleProfileFactory) {
         this.screenManager = screenManager;
         this.deckManager = deckManager;
-        deckManager.bindUpdateUICallback(this::updateButtonUI);
 
-        deckManager.loadPage(PAGE_2_ID);
-        deckManager.loadPage(PAGE_1_ID);
+//        deckManager.addProfile(examplePageFactory.createProfile1());
+//        deckManager.saveProfiles();
 
 //        Page page2 = examplePageFactory.configurePage2();
 //        persistence.savePage(page2);
@@ -97,9 +99,13 @@ public class MainViewController implements ControlledScreen {
         buttons.add(button13);
         buttons.add(button14);
 
+        profilesComboBox.setConverter(new OneWayStringConverter<>(Profile::getName));
+        profilesComboBox.itemsProperty().set(profilesList);
+        profilesComboBox.getSelectionModel().selectedItemProperty()
+                        .addListener((obs, ov, nv) -> deckManager.setCurrentProfile(nv));
         configureButtons();
+        deckManager.bindUpdateUICallback(this::updateButtonUI);
 
-        deckManager.setCurrentPage(PAGE_1_ID);
     }
 
     private void configureButtons() {
@@ -107,12 +113,19 @@ public class MainViewController implements ControlledScreen {
             Button button = buttons.get(i);
             button.setGraphic(new ImageView());
             button.setOnAction(event -> deckManager.fireActionFromUI(i));
+            updateButtonUI(i);
         });
     }
 
     private void updateButtonUI(int index) {
         Button button = buttons.get(index);
         ((ImageView) button.getGraphic()).setImage(deckManager.getButtonImage(index));
+
+        //TODO: only on Profile-Change, extra callback
+        if (profilesComboBox.getSelectionModel().getSelectedItem() != deckManager.getCurrentProfile()) {
+            profilesList.setAll(deckManager.getProfiles());
+            profilesComboBox.getSelectionModel().select(deckManager.getCurrentProfile());
+        }
     }
 
     @FXML

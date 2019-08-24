@@ -2,6 +2,8 @@ package de.acepe.streamdeck.backend.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import de.acepe.streamdeck.backend.config.behaviours.*;
 import de.acepe.streamdeck.backend.config.json.ImageAdapter;
 import de.acepe.streamdeck.backend.config.json.RuntimeTypeAdapterFactory;
@@ -10,13 +12,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Comparator.comparing;
 
 public class Persistence {
     private static final Logger LOG = LoggerFactory.getLogger(Persistence.class);
+
     private static final Page EMPTY_PAGE = new Page("empty");
     private static final String APP_DIR = "deck";
+    private static final String PROFILES_DIR = "profiles";
 
     private final RuntimeTypeAdapterFactory<ButtonBehaviour> typeFactory = RuntimeTypeAdapterFactory
             .of(ButtonBehaviour.class, "type")
@@ -33,55 +45,78 @@ public class Persistence {
                                                .registerTypeAdapter(Image.class, new ImageAdapter())
                                                .create();
 
-    public Page getEmptyPage() {
-        return EMPTY_PAGE;
+    public Profile createDefaultProfile() {
+        Profile defaultProfile = new Profile();
+        defaultProfile.setName("Default");
+        defaultProfile.addPage(EMPTY_PAGE);
+        return defaultProfile;
     }
 
-    public Page loadPage(String uuid) {
-        File file = new File(getPageFile(uuid));
+    public List<Profile> loadAllProfiles() {
+        Path profilesDir = getProfilesDir();
+
+        try (Stream<Path> files = Files.walk(profilesDir)) {
+            return files.filter(Files::isRegularFile)
+                        .map(p -> p.getFileName().toString())
+                        .map(this::loadProfile)
+                        .sorted(comparing(Profile::getName))
+                        .collect(Collectors.toList());
+        } catch (IOException e) {
+            LOG.error("Couldn't read profiles from {}", profilesDir, e);
+        }
+        return new ArrayList<>(0);
+    }
+
+    public Profile loadProfile(String profileName) {
+        File file = getProfileFile(profileName).toFile();
         if (!file.exists()) {
-            return EMPTY_PAGE;
+            LOG.error("Profile file {} does not exist", file);
+            return createDefaultProfile();
         }
 
         try (Reader jsonReader = new InputStreamReader(new FileInputStream(file), UTF_8)) {
-            Page page = gson.fromJson(jsonReader, Page.class);
-            page.syncButtonImages();
-            return page;
-        } catch (IOException e) {
-            LOG.error("Couldn't read data file: {}", file, e);
-            return EMPTY_PAGE;
+            Profile profile = gson.fromJson(jsonReader, Profile.class);
+            profile.syncPages();
+            return profile;
+        } catch (IOException | JsonSyntaxException | JsonIOException e) {
+            LOG.error("Couldn't read page file: {}", file, e);
+            return createDefaultProfile();
         }
     }
 
-    public void savePage(Page page) {
-        String settingsJson = gson.toJson(page);
+    public void saveProfile(Profile profile) {
+        String pageJson = gson.toJson(profile);
         createAppDir();
 
-        String pageFile = getPageFile(page.getId());
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(pageFile), UTF_8)) {
+        Path pageFile = getProfileFile(profile.getName());
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(pageFile.toFile()), UTF_8)) {
             LOG.info("Writing page to file {}", pageFile);
-            writer.write(settingsJson);
+            writer.write(pageJson);
         } catch (Exception e) {
             LOG.error("Couldn't write page to file {}", pageFile);
         }
     }
 
-    private String getPageFile(String id) {
-        return getAppDir() + File.separator + id;
+    private Path getProfileFile(String profileName) {
+        return getProfilesDir().resolve(profileName);
     }
 
-    private String getAppDir() {
-        return System.getProperty("user.home") + File.separator + APP_DIR;
+    private Path getProfilesDir() {
+        return getAppDir().resolve(PROFILES_DIR);
+    }
+
+    private Path getAppDir() {
+        return Paths.get(System.getProperty("user.home"), APP_DIR);
     }
 
     private void createAppDir() {
-        String path = getAppDir();
-        File appDir = new File(path);
+        File appDir = getAppDir().toFile();
         if (!appDir.exists()) {
-            LOG.debug("creating app directory {}", path);
+            LOG.debug("creating app directory {}", appDir);
             if (!appDir.mkdir()) {
-                LOG.error("Couldn't create app directory: {}", path);
+                LOG.error("Couldn't create app directory: {}", appDir);
             }
         }
     }
+
 }

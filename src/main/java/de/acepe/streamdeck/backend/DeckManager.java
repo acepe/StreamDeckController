@@ -3,25 +3,34 @@ package de.acepe.streamdeck.backend;
 import de.acepe.streamdeck.backend.config.DeckButton;
 import de.acepe.streamdeck.backend.config.Page;
 import de.acepe.streamdeck.backend.config.Persistence;
+import de.acepe.streamdeck.backend.config.Profile;
 import de.acepe.streamdeck.device.IStreamDeck;
 import de.acepe.streamdeck.device.StreamDeckDevices;
 import de.acepe.streamdeck.device.event.KeyEvent;
 import javafx.scene.image.Image;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.function.Consumer;
 
 import static de.acepe.streamdeck.device.event.KeyEvent.Type.PRESSED;
 import static de.acepe.streamdeck.device.event.KeyEvent.Type.RELEASED;
 
 public class DeckManager {
+    private static final Logger LOG = LoggerFactory.getLogger(DeckManager.class);
 
+    private final List<Profile> profiles = new ArrayList<>(1);
     private final HashMap<String, Page> pages = new HashMap<>();
+
     private final StreamDeckDevices streamDeckDevices;
     private final Persistence persistence;
 
     private Consumer<Integer> uiCallback;
+    private Profile currentProfile;
     private Page currentPage;
 
     @Inject
@@ -29,12 +38,30 @@ public class DeckManager {
         this.streamDeckDevices = streamDeckDevices;
         this.persistence = persistence;
 
-        Page page = persistence.getEmptyPage();
-        registerPage(page);
-        setCurrentPage(page.getId());
+//        Profile defaultProfile = persistence.createDefaultProfile();
+//        addProfile(defaultProfile);
+
+        persistence.loadAllProfiles().forEach(this::addProfile);
+        setCurrentProfile(profiles.get(0));
 
         streamDeckDevices.registerDecksDiscoveredCallback(this::onStreamdeckConnected);
         onStreamdeckConnected(streamDeckDevices.getStreamDeck());
+    }
+
+    public Profile loadProfile(String profileName) {
+        Profile profile = persistence.loadProfile(profileName);
+        addProfile(profile);
+        setCurrentPage(profile.getStartPage());
+        return profile;
+    }
+
+    public void addProfile(Profile profile) {
+        profiles.add(profile);
+        profile.getPages().forEach(this::registerPage);
+    }
+
+    public void saveProfiles() {
+        profiles.forEach(persistence::saveProfile);
     }
 
     private void onStreamdeckConnected(IStreamDeck deck) {
@@ -57,14 +84,28 @@ public class DeckManager {
         pages.put(page.getId(), page);
     }
 
+    public void setCurrentProfile(Profile profile) {
+        currentProfile = profile;
+        setCurrentPage(profile.getStartPage());
+    }
+
+    public Profile getCurrentProfile() {
+        return currentProfile;
+    }
+
     public void setCurrentPage(String pageId) {
+        Page nextPage = pages.get(pageId);
+        if (nextPage == null) {
+            LOG.error("Page {} not found. It is not contained in any profile", pageId);
+            return;
+        }
         if (currentPage != null) {
             currentPage.unbindDeckManager();
         }
 
-        currentPage = pages.get(pageId);
-        currentPage.bindDeckManager(this);
-        currentPage.update();
+        this.currentPage = nextPage;
+        this.currentPage.bindDeckManager(this);
+        this.currentPage.update();
     }
 
     private void onDeckEventsReceived(KeyEvent keyEvent) {
@@ -100,9 +141,7 @@ public class DeckManager {
         return getCurrentPage().getButton(buttonIndex).getImage();
     }
 
-    public Page loadPage(String uuid) {
-        Page page = persistence.loadPage(uuid);
-        registerPage(page);
-        return page;
+    public List<Profile> getProfiles() {
+        return profiles;
     }
 }
